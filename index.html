@@ -1,0 +1,3287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Polynomial Long Division — Interactive Visualizer & Quiz</title>
+
+  <!-- Google Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- KaTeX CSS & JS for crisp LaTeX rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          keyframes: {
+            popIn: {
+              '0%': { opacity: '0', transform: 'translateY(-6px) scale(0.96)' },
+              '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+            },
+            dropDown: {
+              '0%': { opacity: '0', transform: 'translateY(-16px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            shake: {
+              '0%, 100%': { transform: 'translateX(0)' },
+              '20%, 60%': { transform: 'translateX(-5px)' },
+              '40%, 80%': { transform: 'translateX(5px)' },
+            }
+          },
+          animation: {
+            'pop-in': 'popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            'drop-down': 'dropDown 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            'shake': 'shake 0.35s ease-in-out',
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    .katex {
+      font-size: 1.08em;
+    }
+    .tableau-katex .katex {
+      font-size: 1.15em;
+    }
+    .tableau-scroll::-webkit-scrollbar {
+      height: 6px;
+    }
+    .tableau-scroll::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 9999px;
+    }
+    .tableau-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .tableau-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- Top Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm font-bold text-lg select-none">
+          <span class="math-static">$\frac{P}{D}$</span>
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight leading-tight">
+            Polynomial Long Division
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-500">
+            Interactive Step-by-Step Visualizer &amp; Practice Quiz for <span class="math-static">$P(x) \div D(x)$</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
+        <button id="toggleGuideBtn" type="button"
+          class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          <span>DMSB Guide</span>
+        </button>
+
+        <button id="quiz1Btn" type="button"
+          class="px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Quiz 1 (Standard Mode)</span>
+        </button>
+
+        <button id="quiz2Btn" type="button"
+          class="px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span>Quiz 2 (Challenge Mode)</span>
+        </button>
+
+        <button id="exitQuizBtn" type="button"
+          class="hidden px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-800 hover:bg-slate-900 text-white shadow-sm transition flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span>Exit Quiz Mode</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Inline Notification Banner -->
+  <div id="toastBanner" class="hidden fixed bottom-5 right-5 z-50 max-w-md bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg border border-slate-700 flex items-center gap-3 transition-all">
+    <span class="text-amber-400">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </span>
+    <span id="toastMessage" class="text-sm font-medium"></span>
+  </div>
+
+  <!-- Collapsible Pedagogical Reference Guide -->
+  <section id="guidePanel" class="hidden bg-indigo-950 text-white border-b border-indigo-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base sm:text-lg font-bold text-indigo-200">
+          The Four-Step Cycle: Divide, Multiply, Subtract, Bring Down
+        </h2>
+        <button id="closeGuideBtn" type="button" class="text-indigo-300 hover:text-white text-sm font-medium px-2.5 py-1 rounded-lg hover:bg-indigo-900">
+          Close
+        </button>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-indigo-900/60 border border-indigo-800 rounded-xl p-4">
+          <div class="text-xs font-bold uppercase tracking-wider text-indigo-300 mb-1">1. Divide</div>
+          <p class="text-sm text-indigo-100 leading-relaxed">
+            Divide the leading term of the current dividend by the leading term of the divisor:
+          </p>
+          <div class="mt-2 bg-indigo-950/70 rounded-lg p-2 text-center math-static">
+            $$q_k = \frac{\text{Lead}(\text{Current})}{\text{Lead}(D(x))}$$
+          </div>
+        </div>
+        <div class="bg-indigo-900/60 border border-indigo-800 rounded-xl p-4">
+          <div class="text-xs font-bold uppercase tracking-wider text-emerald-300 mb-1">2. Multiply</div>
+          <p class="text-sm text-indigo-100 leading-relaxed">
+            Multiply the new quotient term <span class="math-static">$q_k$</span> by every term in the divisor <span class="math-static">$D(x)$</span>:
+          </p>
+          <div class="mt-2 bg-indigo-950/70 rounded-lg p-2 text-center math-static">
+            $$\text{Product} = q_k \cdot D(x)$$
+          </div>
+        </div>
+        <div class="bg-indigo-900/60 border border-indigo-800 rounded-xl p-4">
+          <div class="text-xs font-bold uppercase tracking-wider text-purple-300 mb-1">3. Subtract</div>
+          <p class="text-sm text-indigo-100 leading-relaxed">
+            Subtract the product from the aligned dividend terms above (flipping every sign):
+          </p>
+          <div class="mt-2 bg-indigo-950/70 rounded-lg p-2 text-center math-static">
+            $$\text{Top} - (\text{Product}) = \text{Top} + (-\text{Product})$$
+          </div>
+        </div>
+        <div class="bg-indigo-900/60 border border-indigo-800 rounded-xl p-4">
+          <div class="text-xs font-bold uppercase tracking-wider text-amber-300 mb-1">4. Bring Down</div>
+          <p class="text-sm text-indigo-100 leading-relaxed">
+            Bring down the next term of <span class="math-static">$P(x)$</span> and repeat until <span class="math-static">$\deg(R) < \deg(D)$</span>:
+          </p>
+          <div class="mt-2 bg-indigo-950/70 rounded-lg p-2 text-center math-static">
+            $$\frac{P(x)}{D(x)} = Q(x) + \frac{R(x)}{D(x)}$$
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       MODE 1: INTERACTIVE VISUALIZER WORKSPACE
+       ======================================================================== -->
+  <main id="visualizerWorkspace" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Problem Selector & Custom Input Card -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Select Example Problem</span>
+          <h2 class="text-sm text-slate-500">Choose a curated polynomial division problem or enter your own below</h2>
+        </div>
+        <button id="toggleCustomBtn" type="button"
+          class="self-start md:self-auto px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition">
+          + Custom Polynomials
+        </button>
+      </div>
+
+      <!-- Preset Buttons -->
+      <div id="presetContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5"></div>
+
+      <!-- Custom Polynomial Input Form (Collapsible) -->
+      <div id="customInputDrawer" class="hidden pt-3 border-t border-slate-100">
+        <form id="customPolyForm" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+          <div class="md:col-span-5">
+            <label for="dividendInput" class="block text-xs font-semibold text-slate-700 mb-1">
+              Dividend <span class="math-static">$P(x)$</span> <span class="text-slate-400 font-normal">(e.g., 2x^3 - 3x^2 + 4x - 5)</span>
+            </label>
+            <input id="dividendInput" type="text" value="2x^3 - 3x^2 + 4x - 5"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="e.g., x^3 - 6x^2 + 11x - 6" />
+            <div class="mt-1.5 text-xs text-slate-500 flex items-center gap-1.5 min-h-[22px]">
+              <span>Preview:</span>
+              <span id="dividendPreview" class="text-slate-800 font-medium"></span>
+            </div>
+          </div>
+
+          <div class="md:col-span-5">
+            <label for="divisorInput" class="block text-xs font-semibold text-slate-700 mb-1">
+              Divisor <span class="math-static">$D(x)$</span> <span class="text-slate-400 font-normal">(e.g., x - 2)</span>
+            </label>
+            <input id="divisorInput" type="text" value="x - 2"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="e.g., x - 2" />
+            <div class="mt-1.5 text-xs text-slate-500 flex items-center gap-1.5 min-h-[22px]">
+              <span>Preview:</span>
+              <span id="divisorPreview" class="text-slate-800 font-medium"></span>
+            </div>
+          </div>
+
+          <div class="md:col-span-2 flex md:pb-6">
+            <button type="submit"
+              class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow-sm transition">
+              Visualize
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Animation Controls & Timeline Scrubber -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
+        <button id="resetBtn" type="button" title="Reset to Step 0"
+          class="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 disabled:opacity-40 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+          </svg>
+        </button>
+
+        <button id="prevBtn" type="button" title="Previous Step"
+          class="px-3.5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-sm flex items-center gap-1 disabled:opacity-40 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          <span>Prev</span>
+        </button>
+
+        <button id="playBtn" type="button"
+          class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm flex items-center gap-1.5 shadow-sm transition min-w-[110px] justify-center">
+          <svg id="playIcon" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+          </svg>
+          <svg id="pauseIcon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M5.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 007.25 3h-1.5zM12.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75a.75.75 0 00-.75-.75h-1.5z" />
+          </svg>
+          <span id="playBtnText">Auto Play</span>
+        </button>
+
+        <button id="nextBtn" type="button" title="Next Step"
+          class="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm flex items-center gap-1 disabled:opacity-40 transition">
+          <span>Next</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-4 w-full sm:w-auto flex-1 max-w-xl">
+        <div class="flex-1">
+          <div class="flex justify-between text-xs font-semibold text-slate-500 mb-1">
+            <span id="stepCounterLabel">Step 0 of 0</span>
+            <span id="stepPercentLabel">0%</span>
+          </div>
+          <input id="stepSlider" type="range" min="0" max="0" value="0"
+            class="w-full accent-indigo-600 cursor-pointer h-2 bg-slate-200 rounded-lg" />
+        </div>
+
+        <select id="speedSelect" aria-label="Animation speed"
+          class="px-2.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <option value="2400">0.75x</option>
+          <option value="1600" selected>1.0x</option>
+          <option value="950">1.5x</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Main Interactive Split Stage -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <section class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+        <div class="px-5 py-3.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50/70">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+            <h3 class="text-sm font-bold text-slate-800">Long Division Tableau</h3>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
+            <span class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 border border-indigo-200">Leading Terms</span>
+            <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">Quotient</span>
+            <span class="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 border border-purple-200">Product</span>
+            <span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200">Remainder / Drop</span>
+          </div>
+        </div>
+
+        <div class="p-4 sm:p-6 overflow-x-auto tableau-scroll flex-1 flex items-center min-h-[320px]">
+          <div id="tableauContainer" class="inline-block min-w-max mx-auto"></div>
+        </div>
+      </section>
+
+      <section class="lg:col-span-5 space-y-5">
+        <div id="explanationCard" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4 transition-all">
+          <div class="flex items-center justify-between gap-2">
+            <span id="phaseBadge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-100 text-indigo-800">
+              Step 0: Setup
+            </span>
+            <span id="cycleBadge" class="text-xs font-semibold text-slate-400"></span>
+          </div>
+
+          <h3 id="stepTitle" class="text-lg font-bold text-slate-900">Setting up the Division</h3>
+
+          <div id="stepDescription" class="text-sm text-slate-600 leading-relaxed space-y-2"></div>
+
+          <div id="stepFormulaBox" class="rounded-xl bg-slate-50 border border-slate-200 p-4 overflow-x-auto">
+            <div id="stepFormulaContent" class="text-center"></div>
+          </div>
+
+          <div id="stepTipBox" class="rounded-xl bg-amber-50/80 border border-amber-200/80 p-3.5 flex items-start gap-2.5 text-xs sm:text-sm text-amber-900">
+            <svg class="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            <div id="stepTipContent" class="leading-relaxed"></div>
+          </div>
+        </div>
+
+        <div id="finalResultCard" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Division Algorithm Identity</h4>
+            <button id="copyLatexBtn" type="button"
+              class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 px-2.5 py-1 rounded-lg hover:bg-indigo-50 transition flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <span>Copy LaTeX</span>
+            </button>
+          </div>
+          <div id="finalIdentityMath" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 overflow-x-auto text-center"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ========================================================================
+       MODE 2: INTERACTIVE QUIZ MODE WORKSPACE
+       ======================================================================== -->
+  <section id="quizWorkspace" class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Step 1: Student Name Registration Card -->
+    <div id="quizNameSetupCard" class="max-w-lg mx-auto bg-white rounded-2xl border border-slate-200 shadow-md p-6 sm:p-8 space-y-5 mt-4">
+      <div class="flex items-center gap-3">
+        <div id="quizSetupIconWrap" class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </div>
+        <div>
+          <span id="quizSetupEyebrow" class="text-xs font-bold uppercase tracking-wider text-emerald-600">Quiz 1 • Standard Mode</span>
+          <h2 class="text-xl font-bold text-slate-900">Enter Your Name to Begin</h2>
+        </div>
+      </div>
+
+      <p class="text-sm text-slate-600 leading-relaxed">
+        You will be given a random polynomial <span class="math-static">$P(x)$</span> and a random divisor <span class="math-static">$D(x)$</span>. Enter the correct algebraic terms step-by-step to complete each long division!
+      </p>
+
+      <form id="quizNameForm" class="space-y-4">
+        <div>
+          <label for="quizPlayerNameInput" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+            Your Name
+          </label>
+          <input id="quizPlayerNameInput" type="text" required maxlength="32"
+            placeholder="e.g., Alex"
+            class="w-full px-4 py-3 rounded-xl border border-slate-300 text-base font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+        </div>
+
+        <div id="quizSetupModeBox" class="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/70">
+          <div id="quizSetupModeTitle" class="text-sm font-bold text-emerald-950">Quiz 1 — Standard Mode</div>
+          <div id="quizSetupModeDesc" class="text-xs text-emerald-800 mt-0.5">
+            Linear divisor of the form <span class="math-static">$(ax \pm c)$</span>. Mode is locked during the quiz.
+          </div>
+        </div>
+
+        <button id="quizStartSubmitBtn" type="submit"
+          class="w-full py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base shadow-sm transition">
+          Start Quiz 1
+        </button>
+      </form>
+    </div>
+
+    <!-- Step 2: Active Quiz Arena -->
+    <div id="quizArena" class="hidden space-y-6">
+
+      <!-- Persistent Student Name & Scoreboard Bar -->
+      <section class="bg-slate-900 text-white rounded-2xl shadow-md p-4 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-4 border border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 flex items-center justify-center font-extrabold text-base">
+            <span id="quizAvatarInitial">S</span>
+          </div>
+          <div>
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Student</div>
+            <div class="flex items-center gap-2">
+              <span id="quizDisplayName" class="text-base sm:text-lg font-bold text-white">Student</span>
+              <button id="editQuizNameBtn" type="button" title="Change Name"
+                class="text-xs text-slate-400 hover:text-emerald-300 underline transition">
+                Edit
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Score Metrics -->
+        <div class="flex flex-wrap items-center gap-3 sm:gap-5">
+          <div class="bg-slate-800/90 border border-slate-700 rounded-xl px-4 py-2 text-center">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+              Score (Correct / Attempted)
+            </div>
+            <div class="text-lg sm:text-xl font-extrabold text-white tracking-tight">
+              <span id="quizScoreCorrect">0</span>
+              <span class="text-slate-400 mx-0.5">/</span>
+              <span id="quizScoreAttempted">0</span>
+              <span id="quizScorePct" class="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">0%</span>
+            </div>
+          </div>
+
+          <div class="bg-slate-800/90 border border-slate-700 rounded-xl px-3.5 py-2 text-center hidden sm:block">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-indigo-300">
+              Terms Solved
+            </div>
+            <div class="text-base font-bold text-slate-200">
+              <span id="quizTermsCorrect">0</span> / <span id="quizTermsAttempted">0</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span id="quizDifficultyBadge"
+              class="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold uppercase tracking-wider text-amber-300 select-none">
+              Quiz 1 • Standard Mode
+            </span>
+            <span id="quizSyncStatusBadge"
+              class="px-2.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-semibold text-slate-400 select-none">
+              Sheet Sync: Ready
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Current Random Problem Prompt Header -->
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span id="quizQuestionBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-100 text-indigo-800">
+              Quiz 1 • Question #1
+            </span>
+            <span class="text-xs text-slate-400 font-medium">Complete all steps of the long division below</span>
+          </div>
+          <div id="quizProblemStatement" class="text-base sm:text-lg font-semibold text-slate-900 pt-1 overflow-x-auto"></div>
+        </div>
+
+        <div class="flex items-center gap-2 self-start md:self-center">
+          <span class="text-xs font-semibold text-slate-500">Step Progress:</span>
+          <span id="quizStepProgressBadge" class="px-3 py-1 rounded-xl bg-slate-100 text-slate-800 text-xs font-bold">
+            Step 1 of 6
+          </span>
+        </div>
+      </section>
+
+      <!-- Main Quiz Split Stage: Interactive Tableau (Left) + Term Entry & Feedback (Right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- Left: Interactive Long Division Tableau -->
+        <section class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div class="px-5 py-3.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2.5 bg-slate-50/70">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <h3 class="text-sm font-bold text-slate-800">Interactive Division Tableau</h3>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <label for="quizAutoDegreeToggle" class="inline-flex items-center gap-2 cursor-pointer select-none bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-xs">
+                <input id="quizAutoDegreeToggle" type="checkbox" checked
+                  class="w-4 h-4 rounded accent-indigo-600 cursor-pointer" />
+                <span class="text-xs font-semibold text-slate-700">Auto-attach <span class="math-static">$x^n$</span></span>
+              </label>
+              <span id="quizInputHintText" class="text-xs text-slate-500">
+                Enter coefficient only (e.g. <code class="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono">-3</code>) or full term
+              </span>
+            </div>
+          </div>
+
+          <div class="p-4 sm:p-6 overflow-x-auto tableau-scroll flex-1 flex items-center min-h-[340px]">
+            <div id="quizTableauContainer" class="inline-block min-w-max mx-auto"></div>
+          </div>
+        </section>
+
+        <!-- Right: Current Step Prompt, Live Preview, Feedback & Controls -->
+        <section class="lg:col-span-5 space-y-5">
+          <div id="quizActionCard" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between gap-2">
+              <span id="quizPhaseBadge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-100 text-indigo-800">
+                Cycle 1 • 1. Divide
+              </span>
+              <span id="quizCycleLabel" class="text-xs font-semibold text-slate-400"></span>
+            </div>
+
+            <h3 id="quizStepTitle" class="text-lg font-bold text-slate-900">
+              Divide Leading Terms
+            </h3>
+
+            <div id="quizStepPrompt" class="text-sm text-slate-600 leading-relaxed"></div>
+
+            <!-- Live Preview of What User Is Currently Typing -->
+            <div id="quizLivePreviewBox" class="rounded-xl bg-slate-50 border border-slate-200 p-3.5 space-y-1.5">
+              <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Your Input Preview (<span class="math-static">$\LaTeX$</span>)</div>
+              <div id="quizLivePreviewContent" class="min-h-[28px] flex items-center justify-center text-slate-800">
+                <span class="text-xs text-slate-400 italic">Type your term in the highlighted box on the tableau...</span>
+              </div>
+            </div>
+
+            <!-- Feedback Banner (Success / Error / Hint) -->
+            <div id="quizFeedbackBox" class="hidden rounded-xl p-3.5 text-xs sm:text-sm leading-relaxed border"></div>
+
+            <!-- Action Buttons -->
+            <div id="quizControlsRow" class="flex flex-wrap items-center gap-2.5 pt-1">
+              <button id="quizCheckBtn" type="button"
+                class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-sm transition">
+                Check Terms
+              </button>
+              <button id="quizHintBtn" type="button"
+                class="py-2.5 px-3.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-semibold text-xs sm:text-sm transition">
+                Hint
+              </button>
+              <button id="quizRevealStepBtn" type="button"
+                class="py-2.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold text-xs sm:text-sm transition">
+                Fill Step
+              </button>
+            </div>
+
+            <!-- Completed Question Summary & Next Button -->
+            <div id="quizCompletedBox" class="hidden space-y-4 pt-2 border-t border-slate-100">
+              <div id="quizCompletedHeadline" class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-2"></div>
+              <button id="quizNextQuestionBtn" type="button"
+                class="w-full py-3 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm sm:text-base shadow-sm transition">
+                Next Random Problem &rarr;
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </section>
+
+  <footer class="bg-white border-t border-slate-200 mt-10 py-4 text-center text-xs text-slate-400">
+    Interactive Polynomial Long Division Visualizer &amp; Quiz • Powered by LaTeX (<span class="math-static">$\KaTeX$</span>)
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    /**
+     * ============================================================================
+     * 1. EXACT RATIONAL ARITHMETIC (Fraction Class)
+     * ============================================================================
+     */
+    class Frac {
+      constructor(num, den = 1) {
+        if (den === 0) throw new Error("Division by zero in fraction.");
+        if (den < 0) {
+          num = -num;
+          den = -den;
+        }
+        if (num === 0) {
+          this.num = 0;
+          this.den = 1;
+        } else {
+          const g = Frac.gcd(Math.abs(num), Math.abs(den));
+          this.num = num / g;
+          this.den = den / g;
+        }
+      }
+
+      static gcd(a, b) {
+        while (b !== 0) {
+          const t = b;
+          b = a % b;
+          a = t;
+        }
+        return a;
+      }
+
+      add(other) {
+        return new Frac(this.num * other.den + other.num * this.den, this.den * other.den);
+      }
+
+      sub(other) {
+        return new Frac(this.num * other.den - other.num * this.den, this.den * other.den);
+      }
+
+      mul(other) {
+        return new Frac(this.num * other.num, this.den * other.den);
+      }
+
+      div(other) {
+        if (other.num === 0) throw new Error("Division by zero polynomial term.");
+        return new Frac(this.num * other.den, this.den * other.num);
+      }
+
+      neg() {
+        return new Frac(-this.num, this.den);
+      }
+
+      abs() {
+        return new Frac(Math.abs(this.num), this.den);
+      }
+
+      equals(other) {
+        return this.num === other.num && this.den === other.den;
+      }
+
+      isZero() {
+        return this.num === 0;
+      }
+
+      isNegative() {
+        return this.num < 0;
+      }
+
+      isOne() {
+        return this.num === 1 && this.den === 1;
+      }
+
+      absLatex() {
+        const a = Math.abs(this.num);
+        if (this.den === 1) return `${a}`;
+        return `\\frac{${a}}{${this.den}}`;
+      }
+
+      toPlainCoeffString() {
+        if (this.den === 1) return `${this.num}`;
+        return `${this.num}/${this.den}`;
+      }
+
+      toPlainTermString(deg) {
+        if (this.isZero()) return '0';
+        const varPart = deg === 0 ? '' : (deg === 1 ? 'x' : `x^${deg}`);
+        if (deg > 0) {
+          if (this.num === 1 && this.den === 1) return varPart;
+          if (this.num === -1 && this.den === 1) return `-${varPart}`;
+        }
+        return `${this.toPlainCoeffString()}${varPart}`;
+      }
+
+      toTermLatex(deg, opts = {}) {
+        const {
+          isLeading = true,
+          showZero = false,
+          wrapNegInParens = false
+        } = opts;
+
+        if (this.isZero() && !showZero) {
+          return '';
+        }
+
+        const varPart = deg === 0 ? '' : (deg === 1 ? 'x' : `x^{${deg}}`);
+
+        if (this.isZero() && showZero) {
+          const sign = isLeading ? '' : '+ ';
+          return `${sign}0${varPart}`;
+        }
+
+        let signStr = '';
+        if (isLeading) {
+          signStr = this.isNegative() ? '-' : '';
+        } else {
+          signStr = this.isNegative() ? '- ' : '+ ';
+        }
+
+        const mag = this.abs();
+        const coeffStr = (deg > 0 && mag.isOne()) ? '' : mag.absLatex();
+        const core = `${signStr}${coeffStr}${varPart}`;
+
+        if (wrapNegInParens && this.isNegative() && isLeading) {
+          return `(${core})`;
+        }
+        return core;
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 2. POLYNOMIAL PARSING & LATEX FORMATTING HELPERS
+     * ============================================================================
+     */
+    function polyToLatex(coeffs, opts = {}) {
+      const { includeZeros = false, emptyFallback = '0' } = opts;
+      const deg = coeffs.length - 1;
+      let parts = [];
+      let isFirst = true;
+
+      for (let i = 0; i <= deg; i++) {
+        const d = deg - i;
+        const c = coeffs[i];
+        if (c.isZero() && !includeZeros) continue;
+        const term = c.toTermLatex(d, { isLeading: isFirst, showZero: includeZeros });
+        if (term) {
+          parts.push(term);
+          isFirst = false;
+        }
+      }
+
+      return parts.length > 0 ? parts.join(' ') : emptyFallback;
+    }
+
+    function parsePolynomial(rawInput) {
+      if (!rawInput || typeof rawInput !== 'string') {
+        throw new Error("Please enter a valid polynomial expression.");
+      }
+
+      let str = rawInput
+        .replace(/\s+/g, '')
+        .replace(/−/g, '-')
+        .replace(/\*/g, '')
+        .replace(/[{}]/g, '');
+
+      if (str.length === 0) {
+        throw new Error("Polynomial input cannot be empty.");
+      }
+
+      let normalized = '';
+      for (let i = 0; i < str.length; i++) {
+        const ch = str[i];
+        if (ch === '-' && i > 0 && str[i - 1] !== '^' && str[i - 1] !== '+') {
+          normalized += '+-';
+        } else {
+          normalized += ch;
+        }
+      }
+
+      const rawTerms = normalized.split('+').filter(t => t.length > 0);
+      if (rawTerms.length === 0) {
+        throw new Error("Could not detect any polynomial terms.");
+      }
+
+      const termMap = new Map();
+      let maxDeg = 0;
+
+      for (const token of rawTerms) {
+        const match = token.match(/^([+-]?(?:\d+\/\d+|\d+(?:\.\d+)?|\.\d+)?)?(?:[xX](?:\^(\d+))?)?$/);
+        if (!match || (match[0] === '' || match[0] === '+' || match[0] === '-')) {
+          throw new Error(`Invalid term syntax: "${token}". Use format like 3x^2 - 4x + 5.`);
+        }
+
+        const coeffStr = match[1];
+        const hasVar = /[xX]/.test(token);
+        const expStr = match[2];
+
+        let deg = 0;
+        if (hasVar) {
+          deg = expStr !== undefined ? parseInt(expStr, 10) : 1;
+        }
+        if (deg > 8) {
+          throw new Error("Please keep polynomial degree at 8 or lower for clear visualization.");
+        }
+
+        let coeff;
+        if (!coeffStr || coeffStr === '+') {
+          coeff = new Frac(1, 1);
+        } else if (coeffStr === '-') {
+          coeff = new Frac(-1, 1);
+        } else if (coeffStr.includes('/')) {
+          const [n, d] = coeffStr.split('/').map(Number);
+          if (d === 0) throw new Error("Fraction denominator cannot be zero.");
+          coeff = new Frac(n, d);
+        } else if (coeffStr.includes('.')) {
+          const parts = coeffStr.split('.');
+          const scale = Math.pow(10, parts[1].length);
+          const num = Math.round(parseFloat(coeffStr) * scale);
+          coeff = new Frac(num, scale);
+        } else {
+          coeff = new Frac(parseInt(coeffStr, 10), 1);
+        }
+
+        if (!coeff.isZero()) {
+          maxDeg = Math.max(maxDeg, deg);
+        }
+        const prev = termMap.get(deg) || new Frac(0, 1);
+        termMap.set(deg, prev.add(coeff));
+      }
+
+      while (maxDeg > 0 && (!termMap.has(maxDeg) || termMap.get(maxDeg).isZero())) {
+        maxDeg--;
+      }
+
+      const coeffs = [];
+      for (let d = maxDeg; d >= 0; d--) {
+        coeffs.push(termMap.get(d) || new Frac(0, 1));
+      }
+      return coeffs;
+    }
+
+    /**
+     * Parses a single monomial term entered by a student in Quiz Mode.
+     */
+    function parseSingleTerm(rawInput) {
+      if (!rawInput || typeof rawInput !== 'string') {
+        throw new Error("Please enter a term.");
+      }
+      const str = rawInput
+        .replace(/\s+/g, '')
+        .replace(/−/g, '-')
+        .replace(/\*/g, '')
+        .replace(/[{}]/g, '');
+
+      if (!str) {
+        throw new Error("Please enter a term.");
+      }
+
+      const match = str.match(/^([+-]?(?:\d+\/\d+|\d+(?:\.\d+)?|\.\d+)?)?(?:[xX](?:\^(\d+))?)?$/);
+      if (!match || match[0] === '' || match[0] === '+' || match[0] === '-') {
+        throw new Error(`Invalid term "${rawInput}".`);
+      }
+
+      const coeffStr = match[1];
+      const hasVar = /[xX]/.test(str);
+      const expStr = match[2];
+
+      let deg = 0;
+      if (hasVar) {
+        deg = expStr !== undefined ? parseInt(expStr, 10) : 1;
+      }
+
+      let coeff;
+      if (!coeffStr || coeffStr === '+') {
+        coeff = new Frac(1, 1);
+      } else if (coeffStr === '-') {
+        coeff = new Frac(-1, 1);
+      } else if (coeffStr.includes('/')) {
+        const [n, d] = coeffStr.split('/').map(Number);
+        if (d === 0) throw new Error("Denominator cannot be zero.");
+        coeff = new Frac(n, d);
+      } else if (coeffStr.includes('.')) {
+        const parts = coeffStr.split('.');
+        const scale = Math.pow(10, parts[1].length);
+        coeff = new Frac(Math.round(parseFloat(coeffStr) * scale), scale);
+      } else {
+        coeff = new Frac(parseInt(coeffStr, 10), 1);
+      }
+
+      return { coeff, deg, hasVar };
+    }
+
+    /**
+     * Parses a quiz cell input. When autoAttachDegree is enabled, bare numeric/fraction
+     * entries automatically inherit the column's expected degree while full terms
+     * (such as -3x^2) continue to be parsed with their explicit degree.
+     */
+    function parseQuizCellInput(rawInput, expectedDeg, autoAttachDegree) {
+      const parsed = parseSingleTerm(rawInput);
+      if (autoAttachDegree && !parsed.hasVar) {
+        return {
+          coeff: parsed.coeff,
+          deg: expectedDeg,
+          hasVar: expectedDeg > 0,
+          autoAttached: expectedDeg > 0
+        };
+      }
+      return {
+        ...parsed,
+        autoAttached: false
+      };
+    }
+
+    /**
+     * ============================================================================
+     * 3. VISUALIZER STEP-BY-STEP FRAME GENERATOR
+     * ============================================================================
+     */
+    function cloneRows(rows) {
+      return rows.map(r => {
+        const clonedCells = new Map();
+        r.cells.forEach((val, key) => {
+          clonedCells.set(key, { frac: val.frac, state: val.state });
+        });
+        return {
+          type: r.type,
+          startCol: r.startCol,
+          endCol: r.endCol,
+          isSubtracted: r.isSubtracted,
+          cells: clonedCells
+        };
+      });
+    }
+
+    function buildDivisionFrames(dividendCoeffs, divisorCoeffs) {
+      const degP = dividendCoeffs.length - 1;
+      const degD = divisorCoeffs.length - 1;
+
+      if (degD < 1 || divisorCoeffs[0].isZero()) {
+        throw new Error("Divisor D(x) must have degree at least 1 with a non-zero leading coefficient.");
+      }
+
+      const numCols = degP + 1;
+      const zeroPlaceholderCols = new Set();
+      for (let col = 1; col < numCols; col++) {
+        if (dividendCoeffs[col].isZero()) {
+          zeroPlaceholderCols.add(col);
+        }
+      }
+
+      const dividendLatex = polyToLatex(dividendCoeffs);
+      const divisorLatex = polyToLatex(divisorCoeffs);
+
+      // Handle case where deg(P) < deg(D) gracefully
+      if (degP < degD) {
+        const finalQuotientLatex = '0';
+        const finalRemainderLatex = dividendLatex;
+        const isRemainderZero = dividendCoeffs.every(c => c.isZero());
+        const quotient = new Array(numCols).fill(null);
+        quotient[numCols - 1] = { frac: new Frac(0), isZeroSkip: true };
+        return [{
+          phase: 'complete',
+          badge: 'Complete (Degree < Divisor)',
+          cycleInfo: '0 Cycles Needed',
+          title: 'Degree of Dividend is Less Than Divisor',
+          description: `Since $\\deg(P(x)) = ${degP} < \\deg(D(x)) = ${degD}$, the divisor cannot divide into $P(x)$ any further. The quotient is $Q(x) = 0$ and the entire dividend is the remainder.`,
+          formulaLatex: `\\frac{${dividendLatex}}{${divisorLatex}} = 0 + \\frac{${dividendLatex}}{${divisorLatex}}`,
+          tip: `Polynomial long division stops whenever the degree of the remaining polynomial is strictly less than $\\deg(D(x))$.`,
+          numCols,
+          dividendCoeffs,
+          divisorCoeffs,
+          zeroPlaceholderCols,
+          quotient,
+          rows: [],
+          highlights: { completeAll: true },
+          dividendLatex,
+          divisorLatex,
+          finalQuotientLatex,
+          finalRemainderLatex,
+          isRemainderZero
+        }];
+      }
+
+      const totalCycles = degP - degD + 1;
+      const frames = [];
+      const quotient = new Array(numCols).fill(null);
+      const rows = [];
+
+      // Step 0: Initial Setup Frame
+      const hasZeroPlaceholders = zeroPlaceholderCols.size > 0;
+      frames.push({
+        phase: 'setup',
+        badge: 'Step 0: Setup',
+        cycleInfo: `${totalCycles} Cycle${totalCycles > 1 ? 's' : ''}`,
+        title: 'Arrange Terms in Descending Powers of x',
+        description: hasZeroPlaceholders
+          ? `Write both $P(x)$ and $D(x)$ in descending powers of $x$. Notice that missing powers in $P(x)$ are filled with $0x^k$ placeholders so every degree column aligns vertically.`
+          : `Write both $P(x)$ and $D(x)$ in descending powers of $x$. Each column represents a fixed power of $x$ from $x^{${degP}}$ down to $x^0$.`,
+        formulaLatex: `\\text{Divide } P(x) = ${dividendLatex} \\text{ by } D(x) = ${divisorLatex}`,
+        tip: `Always align like powers of $x$ vertically before dividing. Missing terms with coefficient $0$ prevent column-alignment errors.`,
+        numCols,
+        dividendCoeffs,
+        divisorCoeffs,
+        zeroPlaceholderCols,
+        quotient: quotient.slice(),
+        rows: cloneRows(rows),
+        highlights: {},
+        dividendLatex,
+        divisorLatex
+      });
+
+      let currentWork = dividendCoeffs.slice();
+      const divisorLead = divisorCoeffs[0];
+      const divisorLeadLatex = divisorLead.toTermLatex(degD, { isLeading: true, showZero: true });
+
+      for (let k = 0; k < totalCycles; k++) {
+        const cycleNum = k + 1;
+        const leadCol = k;
+        const leadDeg = degP - leadCol;
+        const qDeg = leadDeg - degD;
+        const activeRowIdx = rows.length - 1;
+        const currentLead = currentWork[leadCol];
+
+        // If the leading coefficient of the current slice is 0, record 0 in quotient and move on
+        if (currentLead.isZero()) {
+          quotient[leadCol] = { frac: new Frac(0), isZeroSkip: true };
+          if (rows.length > 0) {
+            rows[rows.length - 1].cells.set(leadCol, { frac: new Frac(0), state: 'canceled' });
+          }
+
+          frames.push({
+            phase: 'divide',
+            badge: `Cycle ${cycleNum} • Zero Term`,
+            cycleInfo: `Cycle ${cycleNum} of ${totalCycles}`,
+            title: `Leading Term in Column $x^{${leadDeg}}$ is Zero`,
+            description: `The current leading coefficient in the $x^{${leadDeg}}$ column is $0$, so the next quotient term is $0$.`,
+            formulaLatex: `\\frac{0}{${divisorLeadLatex}} = 0`,
+            tip: `Recording $0$ in the quotient keeps all subsequent quotient terms aligned over their matching degree columns.`,
+            numCols,
+            dividendCoeffs,
+            divisorCoeffs,
+            zeroPlaceholderCols,
+            quotient: quotient.slice(),
+            rows: cloneRows(rows),
+            highlights: {
+              activeLead: { rowIdx: activeRowIdx, col: leadCol },
+              quotientActive: leadCol
+            },
+            dividendLatex,
+            divisorLatex
+          });
+
+          const nextBringCol = k + degD + 1;
+          if (nextBringCol < numCols) {
+            const broughtFrac = dividendCoeffs[nextBringCol];
+            const broughtDeg = degP - nextBringCol;
+            if (rows.length === 0) {
+              const newRemCells = new Map();
+              for (let c = k + 1; c <= nextBringCol; c++) {
+                newRemCells.set(c, {
+                  frac: dividendCoeffs[c],
+                  state: c === nextBringCol ? 'broughtDown' : 'normal'
+                });
+              }
+              rows.push({
+                type: 'remainder',
+                startCol: k + 1,
+                endCol: nextBringCol,
+                isSubtracted: false,
+                cells: newRemCells
+              });
+            } else {
+              const lastRem = rows[rows.length - 1];
+              lastRem.cells.set(nextBringCol, { frac: broughtFrac, state: 'broughtDown' });
+              lastRem.endCol = nextBringCol;
+            }
+
+            frames.push({
+              phase: 'bringDown',
+              badge: `Cycle ${cycleNum} • 4. Bring Down`,
+              cycleInfo: `Cycle ${cycleNum} of ${totalCycles}`,
+              title: `Bring Down the Next Term`,
+              description: `Bring down $${broughtFrac.toTermLatex(broughtDeg, { isLeading: true, showZero: true })}$ from the dividend to form the next working expression.`,
+              formulaLatex: `\\text{Bring down } ${broughtFrac.toTermLatex(broughtDeg, { isLeading: true, showZero: true })}`,
+              tip: `Continue cycling until no terms remain to bring down.`,
+              numCols,
+              dividendCoeffs,
+              divisorCoeffs,
+              zeroPlaceholderCols,
+              quotient: quotient.slice(),
+              rows: cloneRows(rows),
+              highlights: {
+                broughtDownCell: { rowIdx: rows.length - 1, col: nextBringCol }
+              },
+              dividendLatex,
+              divisorLatex
+            });
+          }
+          continue;
+        }
+
+        // PHASE 1: DIVIDE
+        const qCoeff = currentLead.div(divisorLead);
+        quotient[leadCol] = { frac: qCoeff, isZeroSkip: false };
+
+        const currentLeadLatex = currentLead.toTermLatex(leadDeg, { isLeading: true, showZero: true });
+        const qTermLatex = qCoeff.toTermLatex(qDeg, { isLeading: true, showZero: true });
+
+        frames.push({
+          phase: 'divide',
+          badge: `Cycle ${cycleNum} • 1. Divide`,
+          cycleInfo: `Cycle ${cycleNum} of ${totalCycles}`,
+          title: `Divide Leading Term by Divisor's Leading Term`,
+          description: `Divide the current leading term $${currentLeadLatex}$ by the leading term of the divisor $${divisorLeadLatex}$ to find the next quotient term.`,
+          formulaLatex: `\\frac{${currentLeadLatex}}{${divisorLeadLatex}} = ${qTermLatex}`,
+          tip: `Divide coefficients (${currentLead.absLatex()} by ${divisorLead.absLatex()}) and subtract exponents ($${leadDeg} - ${degD} = ${qDeg}$).`,
+          numCols,
+          dividendCoeffs,
+          divisorCoeffs,
+          zeroPlaceholderCols,
+          quotient: quotient.slice(),
+          rows: cloneRows(rows),
+          highlights: {
+            divisorLead: true,
+            activeLead: { rowIdx: activeRowIdx, col: leadCol },
+            quotientActive: leadCol
+          },
+          dividendLatex,
+          divisorLatex
+        });
+
+        // PHASE 2: MULTIPLY
+        const prodCells = new Map();
+        const prodTermsLatex = [];
+        for (let j = 0; j <= degD; j++) {
+          const col = k + j;
+          const deg = degP - col;
+          const prodFrac = qCoeff.mul(divisorCoeffs[j]);
+          prodCells.set(col, { frac: prodFrac, state: 'normal' });
+          prodTermsLatex.push(prodFrac.toTermLatex(deg, { isLeading: j === 0, showZero: true }));
+        }
+
+        rows.push({
+          type: 'product',
+          startCol: k,
+          endCol: k + degD,
+          isSubtracted: false,
+          cells: prodCells
+        });
+        const prodRowIdx = rows.length - 1;
+
+        frames.push({
+          phase: 'multiply',
+          badge: `Cycle ${cycleNum} • 2. Multiply`,
+          cycleInfo: `Cycle ${cycleNum} of ${totalCycles}`,
+          title: `Multiply Quotient Term by Entire Divisor`,
+          description: `Multiply $${qTermLatex}$ by every term in $D(x) = ${divisorLatex}$ and write the product directly beneath the aligned degree columns.`,
+          formulaLatex: `${qTermLatex}\\left(${divisorLatex}\\right) = ${prodTermsLatex.join(' ')}`,
+          tip: `Make sure $${qTermLatex}$ distributes to every single term of $D(x)$, including constant terms and zero placeholders.`,
+          numCols,
+          dividendCoeffs,
+          divisorCoeffs,
+          zeroPlaceholderCols,
+          quotient: quotient.slice(),
+          rows: cloneRows(rows),
+          highlights: {
+            quotientActive: leadCol,
+            divisorAll: true,
+            productRowIdx: prodRowIdx
+          },
+          dividendLatex,
+          divisorLatex
+        });
+
+        // PHASE 3: SUBTRACT
+        rows[prodRowIdx].isSubtracted = true;
+
+        const remCells = new Map();
+        const topSliceLatex = [];
+        const remSliceLatex = [];
+
+        for (let j = 0; j <= degD; j++) {
+          const col = k + j;
+          const deg = degP - col;
+          const topVal = currentWork[col];
+          const prodVal = rows[prodRowIdx].cells.get(col).frac;
+          const diffVal = topVal.sub(prodVal);
+          currentWork[col] = diffVal;
+
+          topSliceLatex.push(topVal.toTermLatex(deg, { isLeading: j === 0, showZero: true }));
+
+          if (j === 0) {
+            remCells.set(col, { frac: new Frac(0), state: 'canceled' });
+          } else {
+            remCells.set(col, { frac: diffVal, state: 'normal' });
+            remSliceLatex.push(diffVal.toTermLatex(deg, { isLeading: remSliceLatex.length === 0, showZero: true }));
+          }
+        }
+
+        rows.push({
+          type: 'remainder',
+          startCol: k,
+          endCol: k + degD,
+          isSubtracted: false,
+          cells: remCells
+        });
+        const remRowIdx = rows.length - 1;
+        const remDisplayLatex = remSliceLatex.length > 0 ? remSliceLatex.join(' ') : '0';
+
+        frames.push({
+          phase: 'subtract',
+          badge: `Cycle ${cycleNum} • 3. Subtract`,
+          cycleInfo: `Cycle ${cycleNum} of ${totalCycles}`,
+          title: `Subtract Product (Distribute the Negative Sign)`,
+          description: `Subtract $\\left(${prodTermsLatex.join(' ')}\\right)$ from $\\left(${topSliceLatex.join(' ')}\\right)$. The leading $${currentLeadLatex}$ terms cancel out completely.`,
+          formulaLatex: `\\left(${topSliceLatex.join(' ')}\\right) - \\left(${prodTermsLatex.join(' ')}\\right) = ${remDisplayLatex}`,
+          tip: `Remember: subtracting a negative term adds it! Double-check the sign of every term inside the parentheses.`,
+          numCols,
+          dividendCoeffs,
+          divisorCoeffs,
+          zeroPlaceholderCols,
+          quotient: quotient.slice(),
+          rows: cloneRows(rows),
+          highlights: {
+            subtractPair: {
+              topRowIdx: activeRowIdx,
+              prodRowIdx,
+              remRowIdx
+            }
+          },
+          dividendLatex,
+          divisorLatex
+        });
+
+        // PHASE 4: BRING DOWN
+        const nextBringCol = k + degD + 1;
+        if (nextBringCol < numCols) {
+          const broughtFrac = dividendCoeffs[nextBringCol];
+          const broughtDeg = degP - nextBringCol;
+          rows[remRowIdx].cells.set(nextBringCol, { frac: broughtFrac, state: 'broughtDown' });
+          rows[remRowIdx].endCol = nextBringCol;
+
+          const broughtLatex = broughtFrac.toTermLatex(broughtDeg, { isLeading: false, showZero: true });
+          const nextWorkingTerms = [];
+          for (let col = k + 1; col <= nextBringCol; col++) {
+            const deg = degP - col;
+            const c = currentWork[col];
+            nextWorkingTerms.push(c.toTermLatex(deg, { isLeading: nextWorkingTerms.length === 0, showZero: true }));
+          }
+
+          frames.push({
+            phase: 'bringDown',
+            badge: `Cycle ${cycleNum} • 4. Bring Down`,
+            cycleInfo: `Cycle ${cycleNum} of ${totalCycles}`,
+            title: `Bring Down the Next Term`,
+            description: `Bring down the next term from the dividend into the $x^{${broughtDeg}}$ column to form the new working dividend.`,
+            formulaLatex: `\\text{New Dividend Slice: } ${nextWorkingTerms.join(' ')}`,
+            tip: `Bringing down ${broughtLatex} keeps every term aligned in its proper degree column for Cycle ${cycleNum + 1}.`,
+            numCols,
+            dividendCoeffs,
+            divisorCoeffs,
+            zeroPlaceholderCols,
+            quotient: quotient.slice(),
+            rows: cloneRows(rows),
+            highlights: {
+              broughtDownCell: { rowIdx: remRowIdx, col: nextBringCol }
+            },
+            dividendLatex,
+            divisorLatex
+          });
+        }
+      }
+
+      // Compute final Quotient Q(x) and Remainder R(x)
+      const qCoeffs = [];
+      for (let col = 0; col < totalCycles; col++) {
+        qCoeffs.push(quotient[col] ? quotient[col].frac : new Frac(0));
+      }
+      const rCoeffs = currentWork.slice(totalCycles);
+      const isRemainderZero = rCoeffs.every(c => c.isZero());
+      const finalQuotientLatex = polyToLatex(qCoeffs, { emptyFallback: '0' });
+      const finalRemainderLatex = polyToLatex(rCoeffs, { emptyFallback: '0' });
+
+      frames.push({
+        phase: 'complete',
+        badge: 'Complete • Final Answer',
+        cycleInfo: `All ${totalCycles} Cycle${totalCycles > 1 ? 's' : ''} Finished`,
+        title: isRemainderZero
+          ? 'Division Complete — Exact Factor (Zero Remainder)!'
+          : 'Division Complete — Quotient & Remainder Found',
+        description: isRemainderZero
+          ? `Because the remainder is $R(x) = 0$, $D(x) = ${divisorLatex}$ divides $P(x)$ evenly with quotient $Q(x) = ${finalQuotientLatex}$.`
+          : `Since $\\deg(R(x)) < \\deg(D(x)) = ${degD}$, the division is finished with quotient $Q(x) = ${finalQuotientLatex}$ and remainder $R(x) = ${finalRemainderLatex}$.`,
+        formulaLatex: isRemainderZero
+          ? `\\frac{${dividendLatex}}{${divisorLatex}} = ${finalQuotientLatex}`
+          : `\\frac{${dividendLatex}}{${divisorLatex}} = ${finalQuotientLatex} + \\frac{${finalRemainderLatex}}{${divisorLatex}}`,
+        tip: `You can verify your answer by multiplying $D(x) \\cdot Q(x) + R(x)$ to recover $P(x) = ${dividendLatex}$.`,
+        numCols,
+        dividendCoeffs,
+        divisorCoeffs,
+        zeroPlaceholderCols,
+        quotient: quotient.slice(),
+        rows: cloneRows(rows),
+        highlights: { completeAll: true },
+        dividendLatex,
+        divisorLatex,
+        finalQuotientLatex,
+        finalRemainderLatex,
+        isRemainderZero
+      });
+
+      frames.forEach(f => {
+        f.finalQuotientLatex = finalQuotientLatex;
+        f.finalRemainderLatex = finalRemainderLatex;
+        f.isRemainderZero = isRemainderZero;
+      });
+
+      return frames;
+    }
+
+    /**
+     * ============================================================================
+     * 4. KATEX RENDERING HELPERS & TOAST NOTIFICATIONS
+     * ============================================================================
+     */
+    function renderKaTeX(element, tex, displayMode = false) {
+      if (!element) return;
+      if (typeof katex !== 'undefined' && typeof katex.render === 'function') {
+        try {
+          katex.render(tex, element, {
+            throwOnError: false,
+            displayMode
+          });
+          return;
+        } catch {
+          // Fall through to clean text fallback
+        }
+      }
+      element.textContent = tex
+        .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1)/($2)')
+        .replace(/[{}]/g, '');
+    }
+
+    function renderAutoMath(rootEl = document.body) {
+      if (!rootEl) return;
+      if (typeof renderMathInElement === 'function') {
+        try {
+          renderMathInElement(rootEl, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '$', right: '$', display: false }
+            ],
+            throwOnError: false
+          });
+        } catch {
+          // Ignore transient KaTeX auto-render errors
+        }
+      }
+    }
+
+    let toastTimeoutId = null;
+    function showToast(message) {
+      const banner = document.getElementById('toastBanner');
+      const msgEl = document.getElementById('toastMessage');
+      if (!banner || !msgEl) return;
+      msgEl.textContent = message;
+      banner.classList.remove('hidden');
+      if (toastTimeoutId) clearTimeout(toastTimeoutId);
+      toastTimeoutId = setTimeout(() => {
+        banner.classList.add('hidden');
+      }, 3600);
+    }
+
+    /**
+     * ============================================================================
+     * 5. VISUALIZER STATE, RENDERING & PLAYBACK CONTROLS
+     * ============================================================================
+     */
+    const PRESETS = [
+      {
+        label: 'Exact Factor',
+        tag: 'R(x) = 0',
+        dividend: 'x^3 - 6x^2 + 11x - 6',
+        divisor: 'x - 2',
+        latex: '(x^3 - 6x^2 + 11x - 6) \\div (x - 2)'
+      },
+      {
+        label: 'With Remainder',
+        tag: 'R(x) ≠ 0',
+        dividend: '2x^3 - 3x^2 + 4x - 5',
+        divisor: 'x - 2',
+        latex: '(2x^3 - 3x^2 + 4x - 5) \\div (x - 2)'
+      },
+      {
+        label: 'Missing Terms',
+        tag: '0x² Placeholders',
+        dividend: 'x^4 - 16',
+        divisor: 'x - 2',
+        latex: '(x^4 - 16) \\div (x - 2)'
+      },
+      {
+        label: 'Quadratic Divisor',
+        tag: 'deg D = 2',
+        dividend: '3x^4 + 2x^3 - 5x^2 + x - 4',
+        divisor: 'x^2 + 2x - 1',
+        latex: '(3x^4 + 2x^3 - 5x^2 + x - 4) \\div (x^2 + 2x - 1)'
+      },
+      {
+        label: 'Rational Coeffs',
+        tag: 'Fractions',
+        dividend: '4x^3 - 2x^2 + 6x - 1',
+        divisor: '2x + 1',
+        latex: '(4x^3 - 2x^2 + 6x - 1) \\div (2x + 1)'
+      }
+    ];
+
+    const state = {
+      frames: [],
+      currentIndex: 0,
+      isPlaying: false,
+      timerId: null,
+      activePreset: 0
+    };
+
+    function initPresets() {
+      const container = document.getElementById('presetContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      PRESETS.forEach((preset, idx) => {
+        const isActive = state.activePreset === idx;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `text-left p-3 rounded-xl border transition flex flex-col justify-between gap-1.5 ${
+          isActive
+            ? 'border-indigo-600 bg-indigo-50/70 ring-2 ring-indigo-500/20'
+            : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50'
+        }`;
+
+        const topRow = document.createElement('div');
+        topRow.className = 'flex items-center justify-between gap-1.5 w-full';
+
+        const labelSpan = document.createElement('span');
+        labelSpan.className = `text-xs font-bold ${isActive ? 'text-indigo-900' : 'text-slate-800'}`;
+        labelSpan.textContent = preset.label;
+
+        const tagSpan = document.createElement('span');
+        tagSpan.className = `text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+          isActive ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
+        }`;
+        tagSpan.textContent = preset.tag;
+
+        topRow.appendChild(labelSpan);
+        topRow.appendChild(tagSpan);
+
+        const mathDiv = document.createElement('div');
+        mathDiv.className = 'text-xs text-slate-700 overflow-x-auto';
+        renderKaTeX(mathDiv, preset.latex, false);
+
+        btn.appendChild(topRow);
+        btn.appendChild(mathDiv);
+
+        btn.addEventListener('click', () => {
+          loadDivisionProblem(preset.dividend, preset.divisor, idx);
+        });
+
+        container.appendChild(btn);
+      });
+    }
+
+    function loadDivisionProblem(dividendStr, divisorStr, presetIdx = null) {
+      stopPlayback();
+      try {
+        const dividendCoeffs = parsePolynomial(dividendStr);
+        const divisorCoeffs = parsePolynomial(divisorStr);
+        const frames = buildDivisionFrames(dividendCoeffs, divisorCoeffs);
+
+        state.frames = frames;
+        state.currentIndex = 0;
+        state.activePreset = presetIdx;
+
+        const slider = document.getElementById('stepSlider');
+        if (slider) {
+          slider.min = 0;
+          slider.max = Math.max(0, frames.length - 1);
+          slider.value = 0;
+        }
+
+        initPresets();
+        updateUI();
+      } catch (err) {
+        showToast(err.message || 'Unable to parse polynomial expression.');
+      }
+    }
+
+    function renderTableau(frame) {
+      const container = document.getElementById('tableauContainer');
+      if (!container || !frame) return;
+      container.innerHTML = '';
+
+      const numCols = frame.numCols;
+      const degP = numCols - 1;
+      const hl = frame.highlights || {};
+
+      const table = document.createElement('table');
+      table.className = 'border-collapse tableau-katex select-none';
+
+      // 1. Column Degree Header Row
+      const thead = document.createElement('thead');
+      const degRow = document.createElement('tr');
+      const emptyCorner = document.createElement('th');
+      emptyCorner.className = 'px-3 py-1 text-right text-[11px] font-semibold text-slate-400';
+      emptyCorner.textContent = 'Degree';
+      degRow.appendChild(emptyCorner);
+
+      for (let col = 0; col < numCols; col++) {
+        const d = degP - col;
+        const th = document.createElement('th');
+        th.className = 'px-3 py-1 text-center text-xs font-semibold text-slate-400 min-w-[78px]';
+        renderKaTeX(th, d === 0 ? 'x^{0}' : (d === 1 ? 'x^{1}' : `x^{${d}}`), false);
+        degRow.appendChild(th);
+      }
+      thead.appendChild(degRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+
+      // 2. Quotient Row (above bracket bar)
+      const qRow = document.createElement('tr');
+      const qLabelCell = document.createElement('td');
+      qLabelCell.className = 'px-3 py-2 text-right text-[11px] font-bold uppercase tracking-wider text-emerald-700';
+      qLabelCell.textContent = 'Q(x)';
+      qRow.appendChild(qLabelCell);
+
+      let firstNonZeroQCol = -1;
+      for (let col = 0; col < numCols; col++) {
+        if (frame.quotient[col] && !frame.quotient[col].frac.isZero()) {
+          firstNonZeroQCol = col;
+          break;
+        }
+      }
+
+      for (let col = 0; col < numCols; col++) {
+        const td = document.createElement('td');
+        td.className = 'px-2.5 py-2 text-center align-middle';
+        const qEntry = frame.quotient[col];
+
+        if (qEntry) {
+          const deg = degP - col;
+          const isLeading = firstNonZeroQCol === -1 ? true : col === firstNonZeroQCol;
+          const tex = qEntry.frac.toTermLatex(deg, { isLeading, showZero: true });
+          const badge = document.createElement('div');
+          const isHighlighted = hl.quotientActive === col;
+          const isDone = hl.completeAll;
+
+          badge.className = `inline-flex items-center justify-center px-2.5 py-1 rounded-lg font-semibold transition-all ${
+            isHighlighted
+              ? 'bg-emerald-100 text-emerald-950 ring-2 ring-emerald-500 animate-pop-in shadow-xs'
+              : isDone
+                ? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
+                : qEntry.isZeroSkip
+                  ? 'text-slate-400'
+                  : 'text-emerald-800'
+          }`;
+          renderKaTeX(badge, tex, false);
+          td.appendChild(badge);
+        } else {
+          td.innerHTML = '<span class="inline-block h-7"></span>';
+        }
+        qRow.appendChild(td);
+      }
+      tbody.appendChild(qRow);
+
+      // 3. Divisor + Division Bracket + Dividend Row
+      const divRow = document.createElement('tr');
+      const divisorTd = document.createElement('td');
+      divisorTd.className = 'px-3.5 py-2.5 text-right align-middle whitespace-nowrap';
+
+      const divisorPill = document.createElement('div');
+      divisorPill.className = `inline-flex items-center px-3 py-1.5 rounded-xl transition-all ${
+        hl.divisorLead
+          ? 'bg-indigo-100 text-indigo-950 ring-2 ring-indigo-500 font-semibold'
+          : hl.divisorAll
+            ? 'bg-purple-100 text-purple-950 ring-2 ring-purple-500 font-semibold'
+            : 'bg-slate-100 text-slate-900 font-semibold'
+      }`;
+      renderKaTeX(divisorPill, frame.divisorLatex, false);
+      divisorTd.appendChild(divisorPill);
+      divRow.appendChild(divisorTd);
+
+      for (let col = 0; col < numCols; col++) {
+        const deg = degP - col;
+        const td = document.createElement('td');
+        const leftBracket = col === 0 ? 'border-l-2 border-slate-800 rounded-tl-xl' : '';
+        td.className = `px-2.5 py-2.5 text-center align-middle border-t-2 border-slate-800 ${leftBracket}`;
+
+        const tex = frame.dividendCoeffs[col].toTermLatex(deg, {
+          isLeading: col === 0,
+          showZero: true
+        });
+
+        const isLeadTarget = hl.activeLead && hl.activeLead.rowIdx === -1 && hl.activeLead.col === col;
+        const isSubTop =
+          hl.subtractPair &&
+          hl.subtractPair.topRowIdx === -1 &&
+          frame.rows[hl.subtractPair.prodRowIdx] &&
+          col >= frame.rows[hl.subtractPair.prodRowIdx].startCol &&
+          col <= frame.rows[hl.subtractPair.prodRowIdx].endCol;
+        const isPlaceholder = frame.zeroPlaceholderCols.has(col);
+
+        const termBox = document.createElement('div');
+        termBox.className = `inline-flex items-center justify-center px-2.5 py-1 rounded-lg transition-all ${
+          isLeadTarget
+            ? 'bg-indigo-100 text-indigo-950 ring-2 ring-indigo-500 font-semibold'
+            : isSubTop
+              ? 'bg-purple-50 text-purple-950 border border-purple-200'
+              : isPlaceholder
+                ? 'bg-amber-50/70 text-slate-400 border border-dashed border-amber-300'
+                : 'text-slate-900'
+        }`;
+        renderKaTeX(termBox, tex, false);
+        td.appendChild(termBox);
+        divRow.appendChild(td);
+      }
+      tbody.appendChild(divRow);
+
+      // 4. Intermediate Product & Remainder Rows
+      frame.rows.forEach((row, rIdx) => {
+        const tr = document.createElement('tr');
+
+        const gutterTd = document.createElement('td');
+        gutterTd.className = 'px-3 py-2 text-right align-middle';
+        if (row.type === 'product' && row.isSubtracted) {
+          const minusBadge = document.createElement('span');
+          minusBadge.className = 'inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-xs font-extrabold border border-purple-300';
+          minusBadge.textContent = '− (   )';
+          gutterTd.appendChild(minusBadge);
+        }
+        tr.appendChild(gutterTd);
+
+        let firstDisplayCol = row.startCol;
+        if (row.type === 'remainder') {
+          for (let c = row.startCol; c <= row.endCol; c++) {
+            const cell = row.cells.get(c);
+            if (cell && cell.state !== 'canceled') {
+              firstDisplayCol = c;
+              break;
+            }
+          }
+        }
+
+        for (let col = 0; col < numCols; col++) {
+          const deg = degP - col;
+          const td = document.createElement('td');
+          const inSpan = col >= row.startCol && col <= row.endCol;
+          const bottomBar = row.type === 'product' && inSpan ? 'border-b-2 border-slate-500' : '';
+          td.className = `px-2.5 py-2 text-center align-middle ${bottomBar}`;
+
+          const cell = row.cells.get(col);
+          if (!cell) {
+            tr.appendChild(td);
+            continue;
+          }
+
+          const pill = document.createElement('div');
+
+          if (cell.state === 'canceled') {
+            pill.className = 'inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-slate-300 line-through text-sm';
+            pill.textContent = '0';
+          } else {
+            const isLeading = col === firstDisplayCol;
+            const tex = cell.frac.toTermLatex(deg, { isLeading, showZero: true });
+
+            const isProdHighlight = hl.productRowIdx === rIdx;
+            const isSubProd = hl.subtractPair && hl.subtractPair.prodRowIdx === rIdx;
+            const isSubRem = hl.subtractPair && hl.subtractPair.remRowIdx === rIdx;
+            const isLeadTarget = hl.activeLead && hl.activeLead.rowIdx === rIdx && hl.activeLead.col === col;
+            const isBrought = hl.broughtDownCell && hl.broughtDownCell.rowIdx === rIdx && hl.broughtDownCell.col === col;
+            const isFinalRem = hl.completeAll && rIdx === frame.rows.length - 1;
+
+            let styleCls = 'text-slate-800';
+            if (isProdHighlight) {
+              styleCls = 'bg-purple-100 text-purple-950 ring-2 ring-purple-500 animate-pop-in font-semibold';
+            } else if (isSubProd) {
+              styleCls = 'bg-purple-50 text-purple-900 border border-purple-200';
+            } else if (isLeadTarget) {
+              styleCls = 'bg-indigo-100 text-indigo-950 ring-2 ring-indigo-500 font-semibold';
+            } else if (isBrought || cell.state === 'broughtDown') {
+              styleCls = isBrought
+                ? 'bg-amber-100 text-amber-950 ring-2 ring-amber-500 animate-drop-down font-semibold'
+                : 'bg-amber-50 text-amber-900 border border-amber-200';
+            } else if (isSubRem) {
+              styleCls = 'bg-emerald-50 text-emerald-950 border border-emerald-300 animate-pop-in font-semibold';
+            } else if (isFinalRem) {
+              styleCls = 'bg-amber-100 text-amber-950 border border-amber-300 font-bold';
+            }
+
+            pill.className = `inline-flex items-center justify-center px-2.5 py-1 rounded-lg transition-all ${styleCls}`;
+            renderKaTeX(pill, tex, false);
+          }
+
+          td.appendChild(pill);
+          tr.appendChild(td);
+        }
+
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      container.appendChild(table);
+    }
+
+    function updateUI() {
+      if (!state.frames || state.frames.length === 0) return;
+
+      const idx = Math.max(0, Math.min(state.currentIndex, state.frames.length - 1));
+      state.currentIndex = idx;
+      const frame = state.frames[idx];
+      const maxStep = Math.max(0, state.frames.length - 1);
+
+      const counterLabel = document.getElementById('stepCounterLabel');
+      const percentLabel = document.getElementById('stepPercentLabel');
+      const slider = document.getElementById('stepSlider');
+      const prevBtn = document.getElementById('prevBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const nextBtn = document.getElementById('nextBtn');
+
+      if (counterLabel) counterLabel.textContent = `Step ${idx} of ${maxStep}`;
+      const pct = maxStep === 0 ? 100 : Math.round((idx / maxStep) * 100);
+      if (percentLabel) percentLabel.textContent = `${pct}%`;
+      if (slider) slider.value = idx;
+      if (prevBtn) prevBtn.disabled = idx === 0;
+      if (resetBtn) resetBtn.disabled = idx === 0;
+      if (nextBtn) nextBtn.disabled = idx >= maxStep;
+
+      renderTableau(frame);
+
+      const phaseBadge = document.getElementById('phaseBadge');
+      const cycleBadge = document.getElementById('cycleBadge');
+      const stepTitle = document.getElementById('stepTitle');
+      const stepDescription = document.getElementById('stepDescription');
+      const stepFormulaContent = document.getElementById('stepFormulaContent');
+      const stepTipContent = document.getElementById('stepTipContent');
+      const finalIdentityMath = document.getElementById('finalIdentityMath');
+
+      const badgeStyles = {
+        setup: 'bg-slate-200 text-slate-800',
+        divide: 'bg-indigo-100 text-indigo-800',
+        multiply: 'bg-purple-100 text-purple-800',
+        subtract: 'bg-rose-100 text-rose-800',
+        bringDown: 'bg-amber-100 text-amber-800',
+        complete: 'bg-emerald-100 text-emerald-800'
+      };
+
+      if (phaseBadge) {
+        phaseBadge.className = `px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+          badgeStyles[frame.phase] || 'bg-indigo-100 text-indigo-800'
+        }`;
+        phaseBadge.textContent = frame.badge;
+      }
+      if (cycleBadge) cycleBadge.textContent = frame.cycleInfo || '';
+
+      if (stepTitle) {
+        stepTitle.innerHTML = frame.title;
+        renderAutoMath(stepTitle);
+      }
+
+      if (stepDescription) {
+        stepDescription.innerHTML = `<p>${frame.description}</p>`;
+        renderAutoMath(stepDescription);
+      }
+
+      if (stepFormulaContent) {
+        renderKaTeX(stepFormulaContent, frame.formulaLatex, true);
+      }
+
+      if (stepTipContent) {
+        stepTipContent.innerHTML = frame.tip;
+        renderAutoMath(stepTipContent);
+      }
+
+      if (finalIdentityMath) {
+        const identityTex =
+          frame.phase === 'complete'
+            ? frame.isRemainderZero
+              ? `${frame.dividendLatex} = (${frame.divisorLatex})(${frame.finalQuotientLatex})`
+              : `${frame.dividendLatex} = (${frame.divisorLatex})(${frame.finalQuotientLatex}) + (${frame.finalRemainderLatex})`
+            : `P(x) = D(x) \\cdot Q(x) + R(x)`;
+        renderKaTeX(finalIdentityMath, identityTex, true);
+      }
+    }
+
+    function stopPlayback() {
+      state.isPlaying = false;
+      if (state.timerId) {
+        clearInterval(state.timerId);
+        state.timerId = null;
+      }
+      const playIcon = document.getElementById('playIcon');
+      const pauseIcon = document.getElementById('pauseIcon');
+      const playBtnText = document.getElementById('playBtnText');
+      if (playIcon) playIcon.classList.remove('hidden');
+      if (pauseIcon) pauseIcon.classList.add('hidden');
+      if (playBtnText) playBtnText.textContent = 'Auto Play';
+    }
+
+    function startPlayback() {
+      if (state.currentIndex >= state.frames.length - 1) {
+        state.currentIndex = 0;
+        updateUI();
+      }
+      state.isPlaying = true;
+      const playIcon = document.getElementById('playIcon');
+      const pauseIcon = document.getElementById('pauseIcon');
+      const playBtnText = document.getElementById('playBtnText');
+      const speedSelect = document.getElementById('speedSelect');
+
+      if (playIcon) playIcon.classList.add('hidden');
+      if (pauseIcon) pauseIcon.classList.remove('hidden');
+      if (playBtnText) playBtnText.textContent = 'Pause';
+
+      const delay = speedSelect ? parseInt(speedSelect.value, 10) : 1600;
+      state.timerId = setInterval(() => {
+        if (state.currentIndex < state.frames.length - 1) {
+          state.currentIndex++;
+          updateUI();
+        } else {
+          stopPlayback();
+        }
+      }, delay);
+    }
+
+    function updateCustomInputPreviews() {
+      const divInput = document.getElementById('dividendInput');
+      const dsrInput = document.getElementById('divisorInput');
+      const divPreview = document.getElementById('dividendPreview');
+      const dsrPreview = document.getElementById('divisorPreview');
+
+      if (divInput && divPreview) {
+        try {
+          const coeffs = parsePolynomial(divInput.value);
+          renderKaTeX(divPreview, polyToLatex(coeffs), false);
+        } catch {
+          divPreview.textContent = '...';
+        }
+      }
+      if (dsrInput && dsrPreview) {
+        try {
+          const coeffs = parsePolynomial(dsrInput.value);
+          renderKaTeX(dsrPreview, polyToLatex(coeffs), false);
+        } catch {
+          dsrPreview.textContent = '...';
+        }
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 6. QUIZ MODE ENGINE (Random Generator, Step Validator & Live Preview)
+     * ============================================================================
+     */
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function randNonZeroInt(min, max) {
+      let val = 0;
+      while (val === 0) {
+        val = randInt(min, max);
+      }
+      return val;
+    }
+
+    /**
+     * Multiplies two coefficient arrays (descending powers of x).
+     */
+    function multiplyPolyCoeffs(a, b) {
+      const res = new Array(a.length + b.length - 1).fill(null).map(() => new Frac(0));
+      for (let i = 0; i < a.length; i++) {
+        for (let j = 0; j < b.length; j++) {
+          res[i + j] = res[i + j].add(a[i].mul(b[j]));
+        }
+      }
+      return res;
+    }
+
+    /**
+     * Adds remainder coefficients (descending powers) to dividend product coefficients.
+     */
+    function addRemainderCoeffs(prodCoeffs, remCoeffs) {
+      const res = prodCoeffs.slice();
+      const offset = res.length - remCoeffs.length;
+      for (let i = 0; i < remCoeffs.length; i++) {
+        res[offset + i] = res[offset + i].add(remCoeffs[i]);
+      }
+      return res;
+    }
+
+    /**
+     * Generates a randomized polynomial division problem and its interactive steps.
+     * - Standard Mode: linear divisor of form (ax ± c) with a in {1, 2, 3}, c != 0.
+     * - Challenge Mode: higher-degree divisor (deg D = 2) with non-trivial terms.
+     */
+    function generateRandomDivisionProblem(difficulty) {
+      let divisorCoeffs = [];
+      let quotientCoeffs = [];
+      let remCoeffs = [];
+
+      if (difficulty === 'challenge') {
+        // Challenge Mode: Quadratic divisor D(x) = a*x^2 + b*x + c (deg D = 2)
+        const dLead = [1, 1, 2][randInt(0, 2)];
+        let dMid = randInt(-3, 3);
+        let dConst = randInt(-4, 4);
+        if (dMid === 0 && dConst === 0) {
+          dConst = randNonZeroInt(-4, 4);
+        }
+        divisorCoeffs = [new Frac(dLead), new Frac(dMid), new Frac(dConst)];
+
+        // Quadratic quotient Q(x) -> deg P = 4 (3 cycles)
+        const q2 = randNonZeroInt(-3, 3);
+        const q1 = randInt(-4, 4);
+        const q0 = randNonZeroInt(-5, 5);
+        quotientCoeffs = [new Frac(q2), new Frac(q1), new Frac(q0)];
+
+        // Remainder R(x) = r1*x + r0 (deg R < 2)
+        const hasZeroRem = Math.random() < 0.3;
+        if (hasZeroRem) {
+          remCoeffs = [new Frac(0)];
+        } else {
+          remCoeffs = [new Frac(randInt(-5, 5)), new Frac(randNonZeroInt(-7, 7))];
+        }
+      } else {
+        // Standard Mode: Linear divisor D(x) = a*x ± c with a in {1, 2, 3}, c != 0
+        const dLead = [1, 1, 2, 3][randInt(0, 3)];
+        const dConst = randNonZeroInt(-5, 5);
+        divisorCoeffs = [new Frac(dLead), new Frac(dConst)];
+
+        // Degree 2 or 3 quotient Q(x) -> deg P = 3 or 4
+        const qDeg = Math.random() < 0.65 ? 2 : 3;
+        quotientCoeffs = [];
+        for (let d = qDeg; d >= 0; d--) {
+          if (d === qDeg) {
+            quotientCoeffs.push(new Frac(randNonZeroInt(-3, 3)));
+          } else {
+            quotientCoeffs.push(new Frac(randInt(-4, 4)));
+          }
+        }
+
+        // Constant remainder R(x) = r0
+        const r0 = Math.random() < 0.35 ? 0 : randNonZeroInt(-8, 8);
+        remCoeffs = [new Frac(r0)];
+      }
+
+      const prodCoeffs = multiplyPolyCoeffs(divisorCoeffs, quotientCoeffs);
+      const dividendCoeffs = addRemainderCoeffs(prodCoeffs, remCoeffs);
+
+      const degP = dividendCoeffs.length - 1;
+      const degD = divisorCoeffs.length - 1;
+      const numCols = degP + 1;
+      const totalCycles = degP - degD + 1;
+
+      const zeroPlaceholderCols = new Set();
+      for (let col = 1; col < numCols; col++) {
+        if (dividendCoeffs[col].isZero()) {
+          zeroPlaceholderCols.add(col);
+        }
+      }
+
+      const dividendLatex = polyToLatex(dividendCoeffs);
+      const divisorLatex = polyToLatex(divisorCoeffs);
+      const divisorLead = divisorCoeffs[0];
+      const divisorLeadLatex = divisorLead.toTermLatex(degD, { isLeading: true, showZero: true });
+
+      const quotient = new Array(numCols).fill(null);
+      const rows = [];
+      const steps = [];
+      let currentWork = dividendCoeffs.slice();
+
+      let firstNonZeroQCol = -1;
+      for (let k = 0; k < totalCycles; k++) {
+        if (!quotientCoeffs[k].isZero()) {
+          firstNonZeroQCol = k;
+          break;
+        }
+      }
+
+      for (let k = 0; k < totalCycles; k++) {
+        const cycleNum = k + 1;
+        const leadCol = k;
+        const leadDeg = degP - leadCol;
+        const qDeg = leadDeg - degD;
+        const currentLead = currentWork[leadCol];
+        const qCoeff = currentLead.div(divisorLead);
+        const isLeadingQ = firstNonZeroQCol === -1 ? k === 0 : k === firstNonZeroQCol;
+
+        // If leading term is 0, ask user to place 0 in quotient
+        if (currentLead.isZero()) {
+          steps.push({
+            type: 'divide',
+            cycleNum,
+            totalCycles,
+            badge: `Cycle ${cycleNum} • 1. Divide`,
+            title: `Enter Quotient Term for Column $x^{${leadDeg}}$`,
+            prompt: `The leading term in column $x^{${leadDeg}}$ is $0$. Divide $0$ by $${divisorLeadLatex}$ and enter the quotient term.`,
+            hint: `Since $0 \\div (${divisorLeadLatex}) = 0$, enter <strong>0</strong> in the highlighted quotient cell.`,
+            targets: [
+              {
+                key: `q_${leadCol}`,
+                rowType: 'quotient',
+                col: leadCol,
+                deg: qDeg,
+                frac: new Frac(0),
+                isLeading: isLeadingQ
+              }
+            ]
+          });
+
+          const nextBringCol = k + degD + 1;
+          if (nextBringCol < numCols) {
+            const broughtFrac = dividendCoeffs[nextBringCol];
+            const broughtDeg = degP - nextBringCol;
+            if (rows.length === 0) {
+              const newRemCells = new Map();
+              for (let c = k + 1; c < nextBringCol; c++) {
+                newRemCells.set(c, { frac: dividendCoeffs[c], state: 'normal' });
+              }
+              rows.push({
+                type: 'remainder',
+                startCol: k + 1,
+                endCol: nextBringCol,
+                isSubtracted: false,
+                cells: newRemCells
+              });
+            }
+            const targetRowIdx = rows.length - 1;
+            steps.push({
+              type: 'bringDown',
+              cycleNum,
+              totalCycles,
+              badge: `Cycle ${cycleNum} • 4. Bring Down`,
+              title: `Bring Down the Next Term`,
+              prompt: `Bring down the term from the $x^{${broughtDeg}}$ column of $P(x)$ into the working row.`,
+              hint: `Look at the dividend in the $x^{${broughtDeg}}$ column: bring down <strong>${broughtFrac.toPlainTermString(broughtDeg)}</strong>.`,
+              targets: [
+                {
+                  key: `r_${targetRowIdx}_${nextBringCol}`,
+                  rowType: 'row',
+                  rowIdx: targetRowIdx,
+                  col: nextBringCol,
+                  deg: broughtDeg,
+                  frac: broughtFrac,
+                  isLeading: false
+                }
+              ]
+            });
+          }
+          continue;
+        }
+
+        // STEP 1: DIVIDE
+        const currentLeadLatex = currentLead.toTermLatex(leadDeg, { isLeading: true, showZero: true });
+        const qTermLatex = qCoeff.toTermLatex(qDeg, { isLeading: true, showZero: true });
+
+        steps.push({
+          type: 'divide',
+          cycleNum,
+          totalCycles,
+          badge: `Cycle ${cycleNum} • 1. Divide`,
+          title: `Divide Leading Terms`,
+          prompt: `Divide the current leading term $${currentLeadLatex}$ by the leading term of the divisor $${divisorLeadLatex}$.`,
+          hint: `Compute $\\dfrac{${currentLeadLatex}}{${divisorLeadLatex}}$: divide the coefficients and subtract the exponents ($${leadDeg} - ${degD} = ${qDeg}$).`,
+          targets: [
+            {
+              key: `q_${leadCol}`,
+              rowType: 'quotient',
+              col: leadCol,
+              deg: qDeg,
+              frac: qCoeff,
+              isLeading: isLeadingQ
+            }
+          ]
+        });
+
+        // STEP 2: MULTIPLY
+        const prodRowIdx = rows.length;
+        rows.push({
+          type: 'product',
+          startCol: k,
+          endCol: k + degD,
+          isSubtracted: false,
+          cells: new Map()
+        });
+
+        const mulTargets = [];
+        for (let j = 0; j <= degD; j++) {
+          const col = k + j;
+          const deg = degP - col;
+          const prodFrac = qCoeff.mul(divisorCoeffs[j]);
+          mulTargets.push({
+            key: `r_${prodRowIdx}_${col}`,
+            rowType: 'row',
+            rowIdx: prodRowIdx,
+            col,
+            deg,
+            frac: prodFrac,
+            isLeading: j === 0
+          });
+        }
+
+        steps.push({
+          type: 'multiply',
+          cycleNum,
+          totalCycles,
+          badge: `Cycle ${cycleNum} • 2. Multiply`,
+          title: `Multiply Quotient Term by Divisor`,
+          prompt: `Multiply your new quotient term $${qTermLatex}$ by every term of $D(x) = ${divisorLatex}$ and fill in the product row.`,
+          hint: `Distribute $${qTermLatex}$ across each term of $(${divisorLatex})$ from left to right.`,
+          targets: mulTargets
+        });
+
+        // STEP 3: SUBTRACT
+        const remRowIdx = rows.length;
+        const remInitCells = new Map();
+        remInitCells.set(k, { frac: new Frac(0), state: 'canceled' });
+        rows.push({
+          type: 'remainder',
+          startCol: k,
+          endCol: k + degD,
+          isSubtracted: false,
+          cells: remInitCells
+        });
+
+        const subTargets = [];
+        for (let j = 1; j <= degD; j++) {
+          const col = k + j;
+          const deg = degP - col;
+          const topVal = currentWork[col];
+          const prodVal = qCoeff.mul(divisorCoeffs[j]);
+          const diffVal = topVal.sub(prodVal);
+          currentWork[col] = diffVal;
+
+          subTargets.push({
+            key: `r_${remRowIdx}_${col}`,
+            rowType: 'row',
+            rowIdx: remRowIdx,
+            col,
+            deg,
+            frac: diffVal,
+            isLeading: j === 1
+          });
+        }
+        currentWork[k] = new Frac(0);
+
+        steps.push({
+          type: 'subtract',
+          cycleNum,
+          totalCycles,
+          badge: `Cycle ${cycleNum} • 3. Subtract`,
+          title: `Subtract the Product Row`,
+          prompt: `Subtract the product row from the row directly above it. Remember to flip the sign of every term being subtracted!`,
+          hint: `For each column, compute $(\\text{Top Term}) - (\\text{Bottom Term})$. Watch out for double negatives!`,
+          prodRowIdxToMark: prodRowIdx,
+          targets: subTargets
+        });
+
+        // STEP 4: BRING DOWN
+        const nextBringCol = k + degD + 1;
+        if (nextBringCol < numCols) {
+          const broughtFrac = dividendCoeffs[nextBringCol];
+          const broughtDeg = degP - nextBringCol;
+          rows[remRowIdx].endCol = nextBringCol;
+
+          steps.push({
+            type: 'bringDown',
+            cycleNum,
+            totalCycles,
+            badge: `Cycle ${cycleNum} • 4. Bring Down`,
+            title: `Bring Down the Next Term`,
+            prompt: `Bring down the next term from the dividend in the $x^{${broughtDeg}}$ column.`,
+            hint: `Look up at the $x^{${broughtDeg}}$ column of $P(x)$ and copy that term down into the highlighted box.`,
+            targets: [
+              {
+                key: `r_${remRowIdx}_${nextBringCol}`,
+                rowType: 'row',
+                rowIdx: remRowIdx,
+                col: nextBringCol,
+                deg: broughtDeg,
+                frac: broughtFrac,
+                isLeading: false
+              }
+            ]
+          });
+        }
+      }
+
+      const finalQuotientLatex = polyToLatex(quotientCoeffs, { emptyFallback: '0' });
+      const finalRemainderLatex = polyToLatex(remCoeffs, { emptyFallback: '0' });
+      const isRemainderZero = remCoeffs.every(c => c.isZero());
+
+      return {
+        numCols,
+        dividendCoeffs,
+        divisorCoeffs,
+        zeroPlaceholderCols,
+        dividendLatex,
+        divisorLatex,
+        finalQuotientLatex,
+        finalRemainderLatex,
+        isRemainderZero,
+        quotient,
+        rows,
+        steps
+      };
+    }
+
+    function createEmptyQuizSession(difficulty) {
+      return {
+        difficulty,
+        sessionId: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        questionNumber: 0,
+        questionsCorrect: 0,
+        questionsAttempted: 0,
+        termsCorrect: 0,
+        termsAttempted: 0,
+        currentProblem: null,
+        currentStepIdx: 0,
+        usedRevealThisProblem: false,
+        userInputs: {}
+      };
+    }
+
+    // Deployed Google Apps Script Web App URL for automatic score recording
+    const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwb1Yl8p49Do_vZDAE1uVwNQ2i3bKIJosCprmGTqC5wwqQ8GgK2-egMeoZVNszg2RI/exec';
+
+    const quizSessions = {
+      standard: createEmptyQuizSession('standard'),
+      challenge: createEmptyQuizSession('challenge')
+    };
+
+    const quizState = {
+      active: false,
+      playerName: '',
+      difficulty: 'standard',
+      sessionId: '',
+      autoAttachDegree: true,
+      questionNumber: 0,
+      questionsCorrect: 0,
+      questionsAttempted: 0,
+      termsCorrect: 0,
+      termsAttempted: 0,
+      currentProblem: null,
+      currentStepIdx: 0,
+      usedRevealThisProblem: false,
+      userInputs: {}
+    };
+
+    function syncActiveSessionToStore() {
+      const target = quizSessions[quizState.difficulty];
+      if (!target) return;
+      target.sessionId = quizState.sessionId;
+      target.questionNumber = quizState.questionNumber;
+      target.questionsCorrect = quizState.questionsCorrect;
+      target.questionsAttempted = quizState.questionsAttempted;
+      target.termsCorrect = quizState.termsCorrect;
+      target.termsAttempted = quizState.termsAttempted;
+      target.currentProblem = quizState.currentProblem;
+      target.currentStepIdx = quizState.currentStepIdx;
+      target.usedRevealThisProblem = quizState.usedRevealThisProblem;
+      target.userInputs = quizState.userInputs;
+    }
+
+    function loadSessionFromStore(difficulty) {
+      const src = quizSessions[difficulty] || createEmptyQuizSession(difficulty);
+      quizState.difficulty = difficulty;
+      quizState.sessionId = src.sessionId;
+      quizState.questionNumber = src.questionNumber;
+      quizState.questionsCorrect = src.questionsCorrect;
+      quizState.questionsAttempted = src.questionsAttempted;
+      quizState.termsCorrect = src.termsCorrect;
+      quizState.termsAttempted = src.termsAttempted;
+      quizState.currentProblem = src.currentProblem;
+      quizState.currentStepIdx = src.currentStepIdx;
+      quizState.usedRevealThisProblem = src.usedRevealThisProblem;
+      quizState.userInputs = src.userInputs;
+    }
+
+    function setQuizSyncStatus(text, tone = 'neutral') {
+      const badge = document.getElementById('quizSyncStatusBadge');
+      if (!badge) return;
+      const styles = {
+        neutral: 'px-2.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-semibold text-slate-400 select-none',
+        syncing: 'px-2.5 py-2 rounded-xl bg-indigo-950 border border-indigo-700 text-[11px] font-semibold text-indigo-300 select-none',
+        saved: 'px-2.5 py-2 rounded-xl bg-emerald-950 border border-emerald-700 text-[11px] font-semibold text-emerald-300 select-none',
+        error: 'px-2.5 py-2 rounded-xl bg-rose-950 border border-rose-700 text-[11px] font-semibold text-rose-300 select-none'
+      };
+      badge.className = styles[tone] || styles.neutral;
+      badge.textContent = text;
+    }
+
+    /**
+     * Automatically posts the student's timestamp, name, mode, and score
+     * to the Google Apps Script Web App after each completed question.
+     */
+    async function syncScoreToGoogleSheet() {
+      const trimmedName = (quizState.playerName || '').trim();
+      if (!trimmedName || quizState.questionsAttempted <= 0) return;
+
+      if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        setQuizSyncStatus('Sheet Sync: Set Script URL', 'neutral');
+        return;
+      }
+
+      const modeLabel =
+        quizState.difficulty === 'challenge'
+          ? 'Quiz 2 (Challenge Mode)'
+          : 'Quiz 1 (Standard Mode)';
+
+      const payload = {
+        time: new Date().toISOString(),
+        name: trimmedName,
+        mode: modeLabel,
+        score: `${quizState.questionsCorrect}/${quizState.questionsAttempted}`,
+        scoreCorrect: quizState.questionsCorrect,
+        scoreAttempted: quizState.questionsAttempted,
+        termsSolved: `${quizState.termsCorrect}/${quizState.termsAttempted}`,
+        termsCorrect: quizState.termsCorrect,
+        termsAttempted: quizState.termsAttempted,
+        sessionId: quizState.sessionId
+      };
+
+      setQuizSyncStatus('Syncing...', 'syncing');
+
+      try {
+        // Use text/plain to avoid CORS preflight failures with Google Apps Script Web Apps
+        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          setQuizSyncStatus('Saved to Sheet', 'saved');
+        } else {
+          setQuizSyncStatus('Sync Warning', 'error');
+        }
+      } catch (err) {
+        console.error('Failed to sync score to Google Apps Script:', err);
+        setQuizSyncStatus('Offline / Sync Failed', 'error');
+      }
+    }
+
+    function updateQuizScoreboard() {
+      const name = quizState.playerName || 'Student';
+      const avatarEl = document.getElementById('quizAvatarInitial');
+      const displayNameEl = document.getElementById('quizDisplayName');
+      const correctEl = document.getElementById('quizScoreCorrect');
+      const attemptedEl = document.getElementById('quizScoreAttempted');
+      const pctEl = document.getElementById('quizScorePct');
+      const termsCorrectEl = document.getElementById('quizTermsCorrect');
+      const termsAttemptedEl = document.getElementById('quizTermsAttempted');
+      const diffBadgeEl = document.getElementById('quizDifficultyBadge');
+
+      if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
+      if (displayNameEl) displayNameEl.textContent = name;
+      if (correctEl) correctEl.textContent = String(quizState.questionsCorrect);
+      if (attemptedEl) attemptedEl.textContent = String(quizState.questionsAttempted);
+
+      const pct =
+        quizState.questionsAttempted > 0
+          ? Math.round((quizState.questionsCorrect / quizState.questionsAttempted) * 100)
+          : 0;
+      if (pctEl) pctEl.textContent = `${pct}%`;
+
+      if (termsCorrectEl) termsCorrectEl.textContent = String(quizState.termsCorrect);
+      if (termsAttemptedEl) termsAttemptedEl.textContent = String(quizState.termsAttempted);
+      if (diffBadgeEl) {
+        diffBadgeEl.textContent =
+          quizState.difficulty === 'challenge'
+            ? 'Quiz 2 • Challenge Mode'
+            : 'Quiz 1 • Standard Mode';
+      }
+    }
+
+    function startNewQuizProblem() {
+      quizState.questionNumber += 1;
+      quizState.currentProblem = generateRandomDivisionProblem(quizState.difficulty);
+      quizState.currentStepIdx = 0;
+      quizState.usedRevealThisProblem = false;
+      quizState.userInputs = {};
+
+      const fbBox = document.getElementById('quizFeedbackBox');
+      if (fbBox) fbBox.classList.add('hidden');
+
+      syncActiveSessionToStore();
+      renderQuizState();
+    }
+
+    function updateQuizLivePreview() {
+      const previewEl = document.getElementById('quizLivePreviewContent');
+      const prob = quizState.currentProblem;
+      if (!previewEl || !prob) return;
+
+      const step = prob.steps[quizState.currentStepIdx];
+      if (!step) {
+        renderKaTeX(
+          previewEl,
+          prob.isRemainderZero
+            ? `Q(x) = ${prob.finalQuotientLatex}, \\quad R(x) = 0`
+            : `Q(x) = ${prob.finalQuotientLatex}, \\quad R(x) = ${prob.finalRemainderLatex}`,
+          false
+        );
+        return;
+      }
+
+      const pieces = [];
+      let hasAnyInput = false;
+
+      step.targets.forEach((target, idx) => {
+        const raw = (quizState.userInputs[target.key] || '').trim();
+        if (!raw) {
+          pieces.push('\\square');
+          return;
+        }
+        hasAnyInput = true;
+        try {
+          const parsed = parseQuizCellInput(raw, target.deg, quizState.autoAttachDegree);
+          const termTex = parsed.coeff.toTermLatex(parsed.deg, {
+            isLeading: idx === 0,
+            showZero: true
+          });
+          pieces.push(termTex || '0');
+        } catch {
+          pieces.push(`\\text{\\color{#e11d48}{?}}`);
+        }
+      });
+
+      if (!hasAnyInput) {
+        previewEl.innerHTML =
+          '<span class="text-xs text-slate-400 italic">Type your term in the highlighted box on the tableau...</span>';
+        return;
+      }
+
+      renderKaTeX(previewEl, pieces.join(' '), false);
+    }
+
+    function renderQuizTableau() {
+      const container = document.getElementById('quizTableauContainer');
+      const prob = quizState.currentProblem;
+      if (!container || !prob) return;
+
+      container.innerHTML = '';
+
+      const numCols = prob.numCols;
+      const degP = numCols - 1;
+      const isComplete = quizState.currentStepIdx >= prob.steps.length;
+      const activeStep = isComplete ? null : prob.steps[quizState.currentStepIdx];
+
+      const activeTargetMap = new Map();
+      if (activeStep) {
+        activeStep.targets.forEach((t, idx) => {
+          activeTargetMap.set(t.key, { target: t, orderIdx: idx });
+        });
+      }
+
+      const table = document.createElement('table');
+      table.className = 'border-collapse tableau-katex select-none';
+
+      // 1. Degree Header Row
+      const thead = document.createElement('thead');
+      const degRow = document.createElement('tr');
+      const cornerTh = document.createElement('th');
+      cornerTh.className = 'px-3 py-1 text-right text-[11px] font-semibold text-slate-400';
+      cornerTh.textContent = 'Degree';
+      degRow.appendChild(cornerTh);
+
+      for (let col = 0; col < numCols; col++) {
+        const d = degP - col;
+        const th = document.createElement('th');
+        th.className = 'px-3 py-1 text-center text-xs font-semibold text-slate-400 min-w-[88px]';
+        renderKaTeX(th, d === 0 ? 'x^{0}' : (d === 1 ? 'x^{1}' : `x^{${d}}`), false);
+        degRow.appendChild(th);
+      }
+      thead.appendChild(degRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+
+      // Helper to build an inline input cell with optional Smart Degree Auto-Suffix
+      function buildQuizInputCell(target, orderIdx) {
+        const wrap = document.createElement('div');
+        wrap.className = 'inline-flex items-center justify-center gap-1 bg-indigo-50/90 border-2 border-indigo-500 rounded-xl px-2 py-1 shadow-xs';
+
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.autocomplete = 'off';
+        inp.autocapitalize = 'off';
+        inp.spellcheck = false;
+        inp.dataset.targetKey = target.key;
+        inp.value = quizState.userInputs[target.key] || '';
+        inp.placeholder = quizState.autoAttachDegree && target.deg > 0 ? 'coeff' : 'term';
+        inp.className = 'w-16 sm:w-20 text-center text-base font-bold text-slate-900 bg-white border border-indigo-200 rounded-lg px-1.5 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500';
+
+        inp.addEventListener('input', (e) => {
+          quizState.userInputs[target.key] = e.target.value;
+          updateQuizLivePreview();
+        });
+
+        inp.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            checkCurrentQuizStep();
+          }
+        });
+
+        wrap.appendChild(inp);
+
+        if (quizState.autoAttachDegree && target.deg > 0) {
+          const suffixSpan = document.createElement('span');
+          suffixSpan.className = 'text-sm font-bold text-indigo-800 pl-0.5 select-none';
+          renderKaTeX(suffixSpan, target.deg === 1 ? 'x' : `x^{${target.deg}}`, false);
+          wrap.appendChild(suffixSpan);
+        }
+
+        if (orderIdx === 0) {
+          setTimeout(() => {
+            if (document.body.contains(inp)) inp.focus();
+          }, 30);
+        }
+
+        return wrap;
+      }
+
+      // 2. Quotient Row
+      const qRow = document.createElement('tr');
+      const qLabelCell = document.createElement('td');
+      qLabelCell.className = 'px-3 py-2 text-right text-[11px] font-bold uppercase tracking-wider text-emerald-700';
+      qLabelCell.textContent = 'Q(x)';
+      qRow.appendChild(qLabelCell);
+
+      let firstNonZeroQCol = -1;
+      for (let col = 0; col < numCols; col++) {
+        if (prob.quotient[col] && !prob.quotient[col].frac.isZero()) {
+          firstNonZeroQCol = col;
+          break;
+        }
+      }
+
+      for (let col = 0; col < numCols; col++) {
+        const td = document.createElement('td');
+        td.className = 'px-2 py-2 text-center align-middle';
+        const qKey = `q_${col}`;
+        const activeEntry = activeTargetMap.get(qKey);
+
+        if (activeEntry) {
+          td.appendChild(buildQuizInputCell(activeEntry.target, activeEntry.orderIdx));
+        } else if (prob.quotient[col]) {
+          const deg = degP - col;
+          const isLeading = firstNonZeroQCol === -1 ? true : col === firstNonZeroQCol;
+          const tex = prob.quotient[col].frac.toTermLatex(deg, { isLeading, showZero: true });
+          const badge = document.createElement('div');
+          badge.className = `inline-flex items-center justify-center px-2.5 py-1 rounded-lg font-semibold ${
+            isComplete
+              ? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
+              : 'text-emerald-800'
+          }`;
+          renderKaTeX(badge, tex, false);
+          td.appendChild(badge);
+        } else {
+          td.innerHTML = '<span class="inline-block h-7"></span>';
+        }
+        qRow.appendChild(td);
+      }
+      tbody.appendChild(qRow);
+
+      // 3. Divisor + Bracket + Dividend Row
+      const divRow = document.createElement('tr');
+      const divisorTd = document.createElement('td');
+      divisorTd.className = 'px-3.5 py-2.5 text-right align-middle whitespace-nowrap';
+
+      const divisorPill = document.createElement('div');
+      divisorPill.className = `inline-flex items-center px-3 py-1.5 rounded-xl font-semibold ${
+        activeStep && (activeStep.type === 'divide' || activeStep.type === 'multiply')
+          ? 'bg-indigo-100 text-indigo-950 ring-2 ring-indigo-400'
+          : 'bg-slate-100 text-slate-900'
+      }`;
+      renderKaTeX(divisorPill, prob.divisorLatex, false);
+      divisorTd.appendChild(divisorPill);
+      divRow.appendChild(divisorTd);
+
+      for (let col = 0; col < numCols; col++) {
+        const deg = degP - col;
+        const td = document.createElement('td');
+        const leftBracket = col === 0 ? 'border-l-2 border-slate-800 rounded-tl-xl' : '';
+        td.className = `px-2.5 py-2.5 text-center align-middle border-t-2 border-slate-800 ${leftBracket}`;
+
+        const tex = prob.dividendCoeffs[col].toTermLatex(deg, {
+          isLeading: col === 0,
+          showZero: true
+        });
+        const isPlaceholder = prob.zeroPlaceholderCols.has(col);
+        const termBox = document.createElement('div');
+        termBox.className = `inline-flex items-center justify-center px-2.5 py-1 rounded-lg ${
+          isPlaceholder
+            ? 'bg-amber-50/70 text-slate-400 border border-dashed border-amber-300'
+            : 'text-slate-900'
+        }`;
+        renderKaTeX(termBox, tex, false);
+        td.appendChild(termBox);
+        divRow.appendChild(td);
+      }
+      tbody.appendChild(divRow);
+
+      // 4. Intermediate Product & Remainder Rows
+      prob.rows.forEach((row, rIdx) => {
+        const hasVisibleContent =
+          row.cells.size > 0 ||
+          (activeStep && activeStep.targets.some(t => t.rowType === 'row' && t.rowIdx === rIdx));
+        if (!hasVisibleContent) return;
+
+        const tr = document.createElement('tr');
+        const gutterTd = document.createElement('td');
+        gutterTd.className = 'px-3 py-2 text-right align-middle';
+        if (row.type === 'product' && row.isSubtracted) {
+          const minusBadge = document.createElement('span');
+          minusBadge.className = 'inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-xs font-extrabold border border-purple-300';
+          minusBadge.textContent = '− (   )';
+          gutterTd.appendChild(minusBadge);
+        }
+        tr.appendChild(gutterTd);
+
+        let firstDisplayCol = row.startCol;
+        if (row.type === 'remainder') {
+          for (let c = row.startCol; c <= row.endCol; c++) {
+            const cell = row.cells.get(c);
+            const isTargetHere = activeTargetMap.has(`r_${rIdx}_${c}`);
+            if ((cell && cell.state !== 'canceled') || isTargetHere) {
+              firstDisplayCol = c;
+              break;
+            }
+          }
+        }
+
+        for (let col = 0; col < numCols; col++) {
+          const deg = degP - col;
+          const td = document.createElement('td');
+          const inSpan = col >= row.startCol && col <= row.endCol;
+          const bottomBar = row.type === 'product' && inSpan ? 'border-b-2 border-slate-500' : '';
+          td.className = `px-2 py-2 text-center align-middle ${bottomBar}`;
+
+          const cellKey = `r_${rIdx}_${col}`;
+          const activeEntry = activeTargetMap.get(cellKey);
+          const cell = row.cells.get(col);
+
+          if (activeEntry) {
+            td.appendChild(buildQuizInputCell(activeEntry.target, activeEntry.orderIdx));
+          } else if (cell) {
+            const pill = document.createElement('div');
+            if (cell.state === 'canceled') {
+              pill.className = 'inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-slate-300 line-through text-sm';
+              pill.textContent = '0';
+            } else {
+              const isLeading = col === firstDisplayCol;
+              const tex = cell.frac.toTermLatex(deg, { isLeading, showZero: true });
+              const isFinalRem = isComplete && rIdx === prob.rows.length - 1;
+              pill.className = `inline-flex items-center justify-center px-2.5 py-1 rounded-lg ${
+                isFinalRem
+                  ? 'bg-amber-100 text-amber-950 border border-amber-300 font-bold'
+                  : cell.state === 'broughtDown'
+                    ? 'bg-amber-50 text-amber-900 border border-amber-200'
+                    : 'text-slate-800'
+              }`;
+              renderKaTeX(pill, tex, false);
+            }
+            td.appendChild(pill);
+          }
+
+          tr.appendChild(td);
+        }
+
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      container.appendChild(table);
+    }
+
+    function renderQuizState() {
+      updateQuizScoreboard();
+      const prob = quizState.currentProblem;
+      if (!prob) return;
+
+      const qBadge = document.getElementById('quizQuestionBadge');
+      const probStmt = document.getElementById('quizProblemStatement');
+      const progressBadge = document.getElementById('quizStepProgressBadge');
+      const phaseBadge = document.getElementById('quizPhaseBadge');
+      const cycleLabel = document.getElementById('quizCycleLabel');
+      const stepTitle = document.getElementById('quizStepTitle');
+      const stepPrompt = document.getElementById('quizStepPrompt');
+      const controlsRow = document.getElementById('quizControlsRow');
+      const completedBox = document.getElementById('quizCompletedBox');
+      const completedHeadline = document.getElementById('quizCompletedHeadline');
+
+      const quizLabel = quizState.difficulty === 'challenge' ? 'Quiz 2' : 'Quiz 1';
+      if (qBadge) qBadge.textContent = `${quizLabel} • Question #${quizState.questionNumber}`;
+      if (probStmt) {
+        renderKaTeX(
+          probStmt,
+          `\\text{Divide } P(x) = ${prob.dividendLatex} \\text{ by } D(x) = ${prob.divisorLatex}`,
+          false
+        );
+      }
+
+      const totalSteps = prob.steps.length;
+      const isComplete = quizState.currentStepIdx >= totalSteps;
+
+      if (progressBadge) {
+        progressBadge.textContent = isComplete
+          ? `Completed (${totalSteps} / ${totalSteps})`
+          : `Step ${quizState.currentStepIdx + 1} of ${totalSteps}`;
+      }
+
+      renderQuizTableau();
+      updateQuizLivePreview();
+
+      if (isComplete) {
+        if (phaseBadge) {
+          phaseBadge.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800';
+          phaseBadge.textContent = 'Division Complete!';
+        }
+        if (cycleLabel) cycleLabel.textContent = 'All Cycles Solved';
+        if (stepTitle) stepTitle.textContent = 'Great Job! Long Division Completed';
+        if (stepPrompt) {
+          const identityTex = prob.isRemainderZero
+            ? `\\frac{${prob.dividendLatex}}{${prob.divisorLatex}} = ${prob.finalQuotientLatex}`
+            : `\\frac{${prob.dividendLatex}}{${prob.divisorLatex}} = ${prob.finalQuotientLatex} + \\frac{${prob.finalRemainderLatex}}{${prob.divisorLatex}}`;
+          stepPrompt.innerHTML = `<div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-center overflow-x-auto" id="quizFinalIdentitySpan"></div>`;
+          renderKaTeX(document.getElementById('quizFinalIdentitySpan'), identityTex, true);
+        }
+
+        if (controlsRow) controlsRow.classList.add('hidden');
+        if (completedBox) completedBox.classList.remove('hidden');
+        if (completedHeadline) {
+          completedHeadline.innerHTML = quizState.usedRevealThisProblem
+            ? `<div class="font-bold text-sm">Problem Finished (Assisted)</div><p class="text-xs text-emerald-800">Try solving the next random polynomial without "Fill Step" to earn a full point!</p>`
+            : `<div class="font-bold text-sm">Full Point Earned, ${quizState.playerName}!</div><p class="text-xs text-emerald-800">You solved every step accurately. Ready for the next random polynomial?</p>`;
+        }
+        return;
+      }
+
+      const step = prob.steps[quizState.currentStepIdx];
+      const badgeStyles = {
+        divide: 'bg-indigo-100 text-indigo-800',
+        multiply: 'bg-purple-100 text-purple-800',
+        subtract: 'bg-rose-100 text-rose-800',
+        bringDown: 'bg-amber-100 text-amber-800'
+      };
+
+      if (phaseBadge) {
+        phaseBadge.className = `px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+          badgeStyles[step.type] || 'bg-indigo-100 text-indigo-800'
+        }`;
+        phaseBadge.textContent = step.badge;
+      }
+      if (cycleLabel) cycleLabel.textContent = `Cycle ${step.cycleNum} of ${step.totalCycles}`;
+      if (stepTitle) {
+        stepTitle.innerHTML = step.title;
+        renderAutoMath(stepTitle);
+      }
+      if (stepPrompt) {
+        stepPrompt.innerHTML = step.prompt;
+        renderAutoMath(stepPrompt);
+      }
+
+      if (controlsRow) controlsRow.classList.remove('hidden');
+      if (completedBox) completedBox.classList.add('hidden');
+    }
+
+    function showQuizFeedback(kind, htmlMessage) {
+      const box = document.getElementById('quizFeedbackBox');
+      if (!box) return;
+      const styles = {
+        success: 'bg-emerald-50 border-emerald-200 text-emerald-900',
+        error: 'bg-rose-50 border-rose-200 text-rose-900 animate-shake',
+        hint: 'bg-amber-50 border-amber-200 text-amber-900'
+      };
+      box.className = `rounded-xl p-3.5 text-xs sm:text-sm leading-relaxed border ${styles[kind] || styles.hint}`;
+      box.innerHTML = htmlMessage;
+      box.classList.remove('hidden');
+      renderAutoMath(box);
+    }
+
+    function checkCurrentQuizStep() {
+      const prob = quizState.currentProblem;
+      if (!prob || quizState.currentStepIdx >= prob.steps.length) return;
+
+      const step = prob.steps[quizState.currentStepIdx];
+      const errors = [];
+
+      for (const target of step.targets) {
+        const raw = (quizState.userInputs[target.key] || '').trim();
+        quizState.termsAttempted += 1;
+
+        if (!raw) {
+          errors.push(`Please fill in the term for the $x^{${target.deg}}$ column.`);
+          continue;
+        }
+
+        try {
+          const parsed = parseQuizCellInput(raw, target.deg, quizState.autoAttachDegree);
+          const coeffMatches = parsed.coeff.equals(target.frac);
+          const degMatches = target.frac.isZero() ? parsed.coeff.isZero() : parsed.deg === target.deg;
+
+          if (coeffMatches && degMatches) {
+            quizState.termsCorrect += 1;
+          } else if (!degMatches) {
+            errors.push(
+              `Check the exponent in the $x^{${target.deg}}$ column (expected degree $${target.deg}$).`
+            );
+          } else {
+            errors.push(
+              `Incorrect coefficient or sign in the $x^{${target.deg}}$ column. Double-check your arithmetic!`
+            );
+          }
+        } catch (err) {
+          errors.push(err.message || `Invalid term syntax in the $x^{${target.deg}}$ column.`);
+        }
+      }
+
+      if (errors.length > 0) {
+        syncActiveSessionToStore();
+        updateQuizScoreboard();
+        showQuizFeedback('error', `<strong>Not quite:</strong> ${errors[0]}`);
+        return;
+      }
+
+      // Commit all solved targets for this step into the tableau
+      step.targets.forEach((target) => {
+        if (target.rowType === 'quotient') {
+          prob.quotient[target.col] = {
+            frac: target.frac,
+            isZeroSkip: target.frac.isZero()
+          };
+        } else if (target.rowType === 'row') {
+          prob.rows[target.rowIdx].cells.set(target.col, {
+            frac: target.frac,
+            state: step.type === 'bringDown' ? 'broughtDown' : 'normal'
+          });
+        }
+      });
+
+      if (step.type === 'subtract' && typeof step.prodRowIdxToMark === 'number') {
+        prob.rows[step.prodRowIdxToMark].isSubtracted = true;
+      }
+
+      quizState.userInputs = {};
+      quizState.currentStepIdx += 1;
+
+      if (quizState.currentStepIdx >= prob.steps.length) {
+        quizState.questionsAttempted += 1;
+        if (!quizState.usedRevealThisProblem) {
+          quizState.questionsCorrect += 1;
+        }
+        const fbBox = document.getElementById('quizFeedbackBox');
+        if (fbBox) fbBox.classList.add('hidden');
+        syncScoreToGoogleSheet();
+      } else {
+        showQuizFeedback('success', `<strong>Correct!</strong> Moving to the next step.`);
+      }
+
+      syncActiveSessionToStore();
+      renderQuizState();
+    }
+
+    function showQuizHint() {
+      const prob = quizState.currentProblem;
+      if (!prob || quizState.currentStepIdx >= prob.steps.length) return;
+      const step = prob.steps[quizState.currentStepIdx];
+      showQuizFeedback('hint', `<strong>Hint:</strong> ${step.hint}`);
+    }
+
+    function revealCurrentQuizStep() {
+      const prob = quizState.currentProblem;
+      if (!prob || quizState.currentStepIdx >= prob.steps.length) return;
+
+      const step = prob.steps[quizState.currentStepIdx];
+      quizState.usedRevealThisProblem = true;
+
+      step.targets.forEach((target) => {
+        if (target.rowType === 'quotient') {
+          prob.quotient[target.col] = {
+            frac: target.frac,
+            isZeroSkip: target.frac.isZero()
+          };
+        } else if (target.rowType === 'row') {
+          prob.rows[target.rowIdx].cells.set(target.col, {
+            frac: target.frac,
+            state: step.type === 'bringDown' ? 'broughtDown' : 'normal'
+          });
+        }
+      });
+
+      if (step.type === 'subtract' && typeof step.prodRowIdxToMark === 'number') {
+        prob.rows[step.prodRowIdxToMark].isSubtracted = true;
+      }
+
+      quizState.userInputs = {};
+      quizState.currentStepIdx += 1;
+
+      if (quizState.currentStepIdx >= prob.steps.length) {
+        quizState.questionsAttempted += 1;
+        const fbBox = document.getElementById('quizFeedbackBox');
+        if (fbBox) fbBox.classList.add('hidden');
+        syncScoreToGoogleSheet();
+      } else {
+        showQuizFeedback(
+          'hint',
+          `<strong>Step Filled:</strong> Study the terms placed in the tableau, then continue with the next step.`
+        );
+      }
+
+      syncActiveSessionToStore();
+      renderQuizState();
+    }
+
+    function updateQuizSetupCardUI(difficulty) {
+      const isChallenge = difficulty === 'challenge';
+      const iconWrap = document.getElementById('quizSetupIconWrap');
+      const eyebrow = document.getElementById('quizSetupEyebrow');
+      const modeBox = document.getElementById('quizSetupModeBox');
+      const modeTitle = document.getElementById('quizSetupModeTitle');
+      const modeDesc = document.getElementById('quizSetupModeDesc');
+      const submitBtn = document.getElementById('quizStartSubmitBtn');
+
+      if (iconWrap) {
+        iconWrap.className = `w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl ${
+          isChallenge ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
+        }`;
+      }
+      if (eyebrow) {
+        eyebrow.className = `text-xs font-bold uppercase tracking-wider ${
+          isChallenge ? 'text-indigo-600' : 'text-emerald-600'
+        }`;
+        eyebrow.textContent = isChallenge ? 'Quiz 2 • Challenge Mode' : 'Quiz 1 • Standard Mode';
+      }
+      if (modeBox) {
+        modeBox.className = `p-3.5 rounded-xl border ${
+          isChallenge ? 'border-indigo-200 bg-indigo-50/70' : 'border-emerald-200 bg-emerald-50/70'
+        }`;
+      }
+      if (modeTitle) {
+        modeTitle.className = `text-sm font-bold ${isChallenge ? 'text-indigo-950' : 'text-emerald-950'}`;
+        modeTitle.textContent = isChallenge ? 'Quiz 2 — Challenge Mode' : 'Quiz 1 — Standard Mode';
+      }
+      if (modeDesc) {
+        modeDesc.className = `text-xs mt-0.5 ${isChallenge ? 'text-indigo-800' : 'text-emerald-800'}`;
+        modeDesc.innerHTML = isChallenge
+          ? 'Higher-degree divisor <span class="math-static">$(\\deg D \\ge 2)$</span>. Mode is locked during the quiz.'
+          : 'Linear divisor of the form <span class="math-static">$(ax \\pm c)$</span>. Mode is locked during the quiz.';
+        renderAutoMath(modeDesc);
+      }
+      if (submitBtn) {
+        submitBtn.className = `w-full py-3 px-5 rounded-xl text-white font-bold text-sm sm:text-base shadow-sm transition ${
+          isChallenge ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-emerald-600 hover:bg-emerald-700'
+        }`;
+        submitBtn.textContent = isChallenge ? 'Start Quiz 2' : 'Start Quiz 1';
+      }
+    }
+
+    function enterQuizMode(difficulty) {
+      // Reset the quiz session and score every time a quiz mode is entered
+      quizSessions[difficulty] = createEmptyQuizSession(difficulty);
+      loadSessionFromStore(difficulty);
+      quizState.active = true;
+      setQuizSyncStatus('Sheet Sync: Ready', 'neutral');
+      const visWorkspace = document.getElementById('visualizerWorkspace');
+      const quizWorkspace = document.getElementById('quizWorkspace');
+      const quiz1Btn = document.getElementById('quiz1Btn');
+      const quiz2Btn = document.getElementById('quiz2Btn');
+      const exitQuizBtn = document.getElementById('exitQuizBtn');
+
+      stopPlayback();
+      if (visWorkspace) visWorkspace.classList.add('hidden');
+      if (quizWorkspace) quizWorkspace.classList.remove('hidden');
+      if (quiz1Btn) quiz1Btn.classList.add('hidden');
+      if (quiz2Btn) quiz2Btn.classList.add('hidden');
+      if (exitQuizBtn) exitQuizBtn.classList.remove('hidden');
+
+      updateQuizSetupCardUI(difficulty);
+      updateQuizScoreboard();
+
+      const setupCard = document.getElementById('quizNameSetupCard');
+      const arena = document.getElementById('quizArena');
+
+      if (!quizState.playerName) {
+        if (setupCard) setupCard.classList.remove('hidden');
+        if (arena) arena.classList.add('hidden');
+        const nameInput = document.getElementById('quizPlayerNameInput');
+        if (nameInput) setTimeout(() => nameInput.focus(), 40);
+      } else {
+        if (setupCard) setupCard.classList.add('hidden');
+        if (arena) arena.classList.remove('hidden');
+        startNewQuizProblem();
+      }
+    }
+
+    function exitQuizMode() {
+      if (quizState.active) {
+        syncActiveSessionToStore();
+      }
+      quizState.active = false;
+
+      const visWorkspace = document.getElementById('visualizerWorkspace');
+      const quizWorkspace = document.getElementById('quizWorkspace');
+      const quiz1Btn = document.getElementById('quiz1Btn');
+      const quiz2Btn = document.getElementById('quiz2Btn');
+      const exitQuizBtn = document.getElementById('exitQuizBtn');
+
+      if (quizWorkspace) quizWorkspace.classList.add('hidden');
+      if (visWorkspace) visWorkspace.classList.remove('hidden');
+      if (quiz1Btn) quiz1Btn.classList.remove('hidden');
+      if (quiz2Btn) quiz2Btn.classList.remove('hidden');
+      if (exitQuizBtn) exitQuizBtn.classList.add('hidden');
+      updateUI();
+    }
+
+    /**
+     * ============================================================================
+     * 7. INITIALIZATION & EVENT LISTENERS
+     * ============================================================================
+     */
+    let appInitialized = false;
+
+    function initApp() {
+      if (appInitialized) return;
+      appInitialized = true;
+
+      renderAutoMath(document.body);
+
+      // Pedagogical Guide Drawer
+      const toggleGuideBtn = document.getElementById('toggleGuideBtn');
+      const closeGuideBtn = document.getElementById('closeGuideBtn');
+      const guidePanel = document.getElementById('guidePanel');
+
+      if (toggleGuideBtn && guidePanel) {
+        toggleGuideBtn.addEventListener('click', () => {
+          guidePanel.classList.toggle('hidden');
+          renderAutoMath(guidePanel);
+        });
+      }
+      if (closeGuideBtn && guidePanel) {
+        closeGuideBtn.addEventListener('click', () => guidePanel.classList.add('hidden'));
+      }
+
+      // Custom Polynomial Input Drawer
+      const toggleCustomBtn = document.getElementById('toggleCustomBtn');
+      const customDrawer = document.getElementById('customInputDrawer');
+      if (toggleCustomBtn && customDrawer) {
+        toggleCustomBtn.addEventListener('click', () => {
+          customDrawer.classList.toggle('hidden');
+          updateCustomInputPreviews();
+        });
+      }
+
+      const divInput = document.getElementById('dividendInput');
+      const dsrInput = document.getElementById('divisorInput');
+      if (divInput) divInput.addEventListener('input', updateCustomInputPreviews);
+      if (dsrInput) dsrInput.addEventListener('input', updateCustomInputPreviews);
+
+      const customPolyForm = document.getElementById('customPolyForm');
+      if (customPolyForm) {
+        customPolyForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          loadDivisionProblem(divInput.value, dsrInput.value, null);
+        });
+      }
+
+      // Animation Playback Controls
+      const resetBtn = document.getElementById('resetBtn');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const playBtn = document.getElementById('playBtn');
+      const stepSlider = document.getElementById('stepSlider');
+      const speedSelect = document.getElementById('speedSelect');
+
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          stopPlayback();
+          state.currentIndex = 0;
+          updateUI();
+        });
+      }
+
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+          stopPlayback();
+          if (state.currentIndex > 0) {
+            state.currentIndex--;
+            updateUI();
+          }
+        });
+      }
+
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+          stopPlayback();
+          if (state.currentIndex < state.frames.length - 1) {
+            state.currentIndex++;
+            updateUI();
+          }
+        });
+      }
+
+      if (playBtn) {
+        playBtn.addEventListener('click', () => {
+          if (state.isPlaying) {
+            stopPlayback();
+          } else {
+            startPlayback();
+          }
+        });
+      }
+
+      if (stepSlider) {
+        stepSlider.addEventListener('input', (e) => {
+          stopPlayback();
+          state.currentIndex = parseInt(e.target.value, 10) || 0;
+          updateUI();
+        });
+      }
+
+      if (speedSelect) {
+        speedSelect.addEventListener('change', () => {
+          if (state.isPlaying) {
+            stopPlayback();
+            startPlayback();
+          }
+        });
+      }
+
+      // Keyboard Navigation in Visualizer Mode
+      document.addEventListener('keydown', (e) => {
+        if (quizState.active) return;
+        const tag = document.activeElement ? document.activeElement.tagName : '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+        if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          stopPlayback();
+          if (state.currentIndex < state.frames.length - 1) {
+            state.currentIndex++;
+            updateUI();
+          }
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          stopPlayback();
+          if (state.currentIndex > 0) {
+            state.currentIndex--;
+            updateUI();
+          }
+        } else if (e.key === ' ') {
+          e.preventDefault();
+          if (state.isPlaying) stopPlayback();
+          else startPlayback();
+        }
+      });
+
+      // Copy LaTeX Identity Button
+      const copyLatexBtn = document.getElementById('copyLatexBtn');
+      if (copyLatexBtn) {
+        copyLatexBtn.addEventListener('click', () => {
+          const frame = state.frames[state.currentIndex];
+          if (!frame) return;
+          const tex = frame.isRemainderZero
+            ? `${frame.dividendLatex} = (${frame.divisorLatex})(${frame.finalQuotientLatex})`
+            : `${frame.dividendLatex} = (${frame.divisorLatex})(${frame.finalQuotientLatex}) + (${frame.finalRemainderLatex})`;
+
+          const tempArea = document.createElement('textarea');
+          tempArea.value = tex;
+          tempArea.style.position = 'fixed';
+          tempArea.style.opacity = '0';
+          document.body.appendChild(tempArea);
+          tempArea.select();
+          try {
+            document.execCommand('copy');
+            showToast('LaTeX identity copied to clipboard!');
+          } catch {
+            showToast('Unable to copy LaTeX identity.');
+          }
+          document.body.removeChild(tempArea);
+        });
+      }
+
+      // Quiz Mode Toggle & Controls
+      const quiz1Btn = document.getElementById('quiz1Btn');
+      const quiz2Btn = document.getElementById('quiz2Btn');
+      const exitQuizBtn = document.getElementById('exitQuizBtn');
+
+      if (quiz1Btn) {
+        quiz1Btn.addEventListener('click', () => enterQuizMode('standard'));
+      }
+      if (quiz2Btn) {
+        quiz2Btn.addEventListener('click', () => enterQuizMode('challenge'));
+      }
+      if (exitQuizBtn) {
+        exitQuizBtn.addEventListener('click', () => exitQuizMode());
+      }
+
+      const quizNameForm = document.getElementById('quizNameForm');
+      if (quizNameForm) {
+        quizNameForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const nameInput = document.getElementById('quizPlayerNameInput');
+          const rawName = nameInput ? nameInput.value.trim() : '';
+          if (!rawName) {
+            showToast('Please enter your name to begin the quiz.');
+            return;
+          }
+          quizState.playerName = rawName;
+          if (quizState.questionsAttempted > 0) {
+            syncScoreToGoogleSheet();
+          }
+
+          const setupCard = document.getElementById('quizNameSetupCard');
+          const arena = document.getElementById('quizArena');
+          if (setupCard) setupCard.classList.add('hidden');
+          if (arena) arena.classList.remove('hidden');
+
+          if (!quizState.currentProblem) {
+            startNewQuizProblem();
+          } else {
+            renderQuizState();
+          }
+        });
+      }
+
+      const editQuizNameBtn = document.getElementById('editQuizNameBtn');
+      if (editQuizNameBtn) {
+        editQuizNameBtn.addEventListener('click', () => {
+          const setupCard = document.getElementById('quizNameSetupCard');
+          const arena = document.getElementById('quizArena');
+          const nameInput = document.getElementById('quizPlayerNameInput');
+
+          if (nameInput) nameInput.value = quizState.playerName;
+          updateQuizSetupCardUI(quizState.difficulty);
+
+          if (arena) arena.classList.add('hidden');
+          if (setupCard) setupCard.classList.remove('hidden');
+        });
+      }
+
+      const autoDegreeToggle = document.getElementById('quizAutoDegreeToggle');
+      const inputHintText = document.getElementById('quizInputHintText');
+      if (autoDegreeToggle) {
+        autoDegreeToggle.addEventListener('change', (e) => {
+          quizState.autoAttachDegree = Boolean(e.target.checked);
+          if (inputHintText) {
+            inputHintText.innerHTML = quizState.autoAttachDegree
+              ? 'Enter coefficient only (e.g. <code class="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono">-3</code>) or full term'
+              : 'Enter full monomial term (e.g. <code class="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono">-3x^2</code>)';
+          }
+          renderQuizTableau();
+          updateQuizLivePreview();
+        });
+      }
+
+      const quizCheckBtn = document.getElementById('quizCheckBtn');
+      const quizHintBtn = document.getElementById('quizHintBtn');
+      const quizRevealStepBtn = document.getElementById('quizRevealStepBtn');
+      const quizNextQuestionBtn = document.getElementById('quizNextQuestionBtn');
+
+      if (quizCheckBtn) quizCheckBtn.addEventListener('click', checkCurrentQuizStep);
+      if (quizHintBtn) quizHintBtn.addEventListener('click', showQuizHint);
+      if (quizRevealStepBtn) quizRevealStepBtn.addEventListener('click', revealCurrentQuizStep);
+      if (quizNextQuestionBtn) quizNextQuestionBtn.addEventListener('click', startNewQuizProblem);
+
+      // Load initial default preset immediately
+      loadDivisionProblem(PRESETS[0].dividend, PRESETS[0].divisor, 0);
+      updateCustomInputPreviews();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
+
+    window.addEventListener('load', () => {
+      initApp();
+      renderAutoMath(document.body);
+      initPresets();
+      updateUI();
+      if (quizState.active && quizState.currentProblem) {
+        renderQuizState();
+      }
+    });
+  </script>
+</body>
+</html>
