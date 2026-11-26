@@ -430,10 +430,6 @@
             <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Student</div>
             <div class="flex items-center gap-2">
               <span id="quizDisplayName" class="text-base sm:text-lg font-bold text-white">Student</span>
-              <button id="editQuizNameBtn" type="button" title="Change Name"
-                class="text-xs text-slate-400 hover:text-emerald-300 underline transition">
-                Edit
-              </button>
             </div>
           </div>
         </div>
@@ -1620,7 +1616,7 @@
         if (row.type === 'product' && row.isSubtracted) {
           const minusBadge = document.createElement('span');
           minusBadge.className = 'inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-xs font-extrabold border border-purple-300';
-          minusBadge.textContent = '− (   )';
+          minusBadge.textContent = '(-)';
           gutterTd.appendChild(minusBadge);
         }
         tr.appendChild(gutterTd);
@@ -2609,10 +2605,14 @@
         const tr = document.createElement('tr');
         const gutterTd = document.createElement('td');
         gutterTd.className = 'px-3 py-2 text-right align-middle';
-        if (row.type === 'product' && row.isSubtracted) {
+        const isBeingSubtractedNow =
+          activeStep &&
+          activeStep.type === 'subtract' &&
+          activeStep.prodRowIdxToMark === rIdx;
+        if (row.type === 'product' && (row.isSubtracted || isBeingSubtractedNow)) {
           const minusBadge = document.createElement('span');
           minusBadge.className = 'inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-xs font-extrabold border border-purple-300';
-          minusBadge.textContent = '− (   )';
+          minusBadge.textContent = '(-)';
           gutterTd.appendChild(minusBadge);
         }
         tr.appendChild(gutterTd);
@@ -3219,21 +3219,6 @@
           } else {
             renderQuizState();
           }
-        });
-      }
-
-      const editQuizNameBtn = document.getElementById('editQuizNameBtn');
-      if (editQuizNameBtn) {
-        editQuizNameBtn.addEventListener('click', () => {
-          const setupCard = document.getElementById('quizNameSetupCard');
-          const arena = document.getElementById('quizArena');
-          const nameInput = document.getElementById('quizPlayerNameInput');
-
-          if (nameInput) nameInput.value = quizState.playerName;
-          updateQuizSetupCardUI(quizState.difficulty);
-
-          if (arena) arena.classList.add('hidden');
-          if (setupCard) setupCard.classList.remove('hidden');
         });
       }
 
